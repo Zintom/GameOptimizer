@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZintomShellHelper</name>
+    </assembly>
+    <members>
+        <member name="M:ZintomShellHelper.MenuManager.CreateMenu(System.String[],System.Boolean,System.Int32)">
+            <summary>
+            Creates an option menu in text form. Returns the selected option.
+            </summary>
+            <returns>Selected item. If 'Escape' pressed will return -1.</returns>
+        </member>
+        <member name="M:ZintomShellHelper.MenuManager.CreateBackMenu(System.Int32)">
+            <summary>
+            Helper method to create a back menu.
+            </summary>
+            <param name="positionOffset">Horizontal Offset of Text.</param>
+        </member>
+        <member name="M:ZintomShellHelper.MenuManager.Reset">
+            <summary>
+            For when you want the user to be able to enter text again.
+            </summary>
+        </member>
+    </members>
+</doc>

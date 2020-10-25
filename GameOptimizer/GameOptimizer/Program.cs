@@ -48,6 +48,7 @@ namespace GameOptimizer
 
         [DllImport("user32.dll")]
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        const int SW_MINIMIZE = 6;
 
         const string AppName = "Zintom's Game Optimizer";
 
@@ -220,7 +221,7 @@ namespace GameOptimizer
             Thread.Sleep(1500);
 
             if (!flags.HasFlag(OptimizeFlags.NoHide))
-                ShowWindow(GetConsoleWindow(), 6); // SW_MINIMIZE = 6
+                ShowWindow(GetConsoleWindow(), SW_MINIMIZE);
 
             Console.Write("  Press any key to go back."); Console.ReadKey();
         }

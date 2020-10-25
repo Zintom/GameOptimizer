@@ -12,28 +12,8 @@ using System.Windows.Forms;
 
 namespace GameOptimizer
 {
-    [Flags] enum OptimizeFlags
-    {
-        None = 0,
-        /// <summary>
-        /// The windows explorer should be killed.
-        /// </summary>
-        KillExplorerExe = 1,
-        /// <summary>
-        /// The window should not hide after optimization.
-        /// </summary>
-        NoHide = 2,
-        /// <summary>
-        /// The optimizer should boost each priority process to <see cref="ProcessPriorityClass.AboveNormal"/> rather than leaving it at <see cref="ProcessPriorityClass.Normal"/>.
-        /// </summary>
-        BoostPriorities = 4,
-        /// <summary>
-        /// The optimizer should not touch 'non-priority' proccesses.
-        /// </summary>
-        IgnoreOrdinaryProcesses = 8
-    }
 
-    class Program
+    partial class Program
     {
 
         static string PriorityProcessesFile = "priority_processes.txt";
@@ -41,16 +21,18 @@ namespace GameOptimizer
         static ConsoleColor defaultBackColor;
         static ConsoleColor defaultForeColor;
 
-        static List<string> PriorityProcesses = new List<string>();
-
         [DllImport("kernel32.dll")]
-        static extern IntPtr GetConsoleWindow();
+        public static extern IntPtr GetConsoleWindow();
 
         [DllImport("user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        const int SW_MINIMIZE = 6;
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        public const int SW_MINIMIZE = 6;
+
+        static int OptimizeWaitTimeMillis = 5000;
 
         const string AppName = "Zintom's Game Optimizer";
+
+        static Optimizer optimizer;
 
         static void Main(string[] args)
         {
@@ -58,12 +40,12 @@ namespace GameOptimizer
             defaultBackColor = Console.BackgroundColor;
             defaultForeColor = Console.ForegroundColor;
 
-            LoadPriorityProcesses();
+            optimizer = new Optimizer(GetPriorityProcesses());
 
             while (true)
             {
                 string command = "";
-                MenuManager.DrawTitle(AppName, "  For commands, goto help.", true);
+                MenuManager.DrawTitle(AppName, optimizer.IsOptimized ? "  Currently optimized, use 'Restore' or the command 'res' to de-optimize." : "  For commands, goto help.", true);
                 int menuResult = MenuManager.CreateMenu(new string[] { "Quick Options", "Command", "Restore", "Help", "Exit" }, false, 2);
                 switch (menuResult)
                 {
@@ -110,27 +92,27 @@ namespace GameOptimizer
 
                 if (command == "opt")
                 {
-                    Console.WriteLine("Optimizing in 5 seconds...");
-                    Thread.Sleep(5000);
-                    Optimize();
+                    Command_OptimizeNoFlags();
                 }
                 else if (command.StartsWith("opt "))
                 {
-                    Console.WriteLine("Optimizing in 5 seconds...");
-                    Thread.Sleep(5000);
-                    Optimize(GetFlags(command.Substring(4)));
+                    Command_OptimizeWithFlags(ParseFlags(command.Substring(4)));
                 }
                 else if (command == "res")
                 {
-                    Restore();
+                    Command_Restore();
+                }
+                else if (command == "toggle_errors")
+                {
+                    optimizer.ShowErrorCodes = !optimizer.ShowErrorCodes;
                 }
                 else if (command == "audio")
                 {
-                    Process.Start("sndvol.exe", "-f " + SystemInformation.VirtualScreen.Width.ToString());
+                    Process.Start("sndvol.exe", "-f " + SystemInformation.VirtualScreen.Width);
                 }
                 else if (command == "audio mixer")
                 {
-                    Process.Start("sndvol.exe", "-m " + SystemInformation.VirtualScreen.Width.ToString());
+                    Process.Start("sndvol.exe", "-m " + SystemInformation.VirtualScreen.Width);
                 }
                 else if (command == "edit")
                 {
@@ -147,171 +129,57 @@ namespace GameOptimizer
                 }
                 else if (command == "0")
                 {
-                    MenuManager.DrawTitle(AppName, "  Optimizing in 5 seconds...", true);
-                    Thread.Sleep(5000);
-                    Optimize();
+                    Command_OptimizeNoFlags();
                 }
                 else if (command == "1")
                 {
-                    MenuManager.DrawTitle(AppName, "  Boost optimizing in 5 seconds...", true);
-                    Thread.Sleep(5000);
-                    Optimize(OptimizeFlags.BoostPriorities);
+                    MenuManager.DrawTitle(AppName, $"  Boost optimizing in {OptimizeWaitTimeMillis / 1000} seconds...", true);
+                    Thread.Sleep(OptimizeWaitTimeMillis);
+                    optimizer.Optimize(OptimizeFlags.BoostPriorities);
                 }
                 else if (command == "2")
                 {
-                    MenuManager.DrawTitle(AppName, "  Boosting apps to high priority in 5 seconds...", true);
-                    Thread.Sleep(5000);
-                    Optimize(OptimizeFlags.BoostPriorities | OptimizeFlags.IgnoreOrdinaryProcesses);
+                    MenuManager.DrawTitle(AppName, $"  Boosting priority apps in {OptimizeWaitTimeMillis / 1000} seconds...", true);
+                    Thread.Sleep(OptimizeWaitTimeMillis);
+                    optimizer.Optimize(OptimizeFlags.BoostPriorities | OptimizeFlags.IgnoreOrdinaryProcesses);
                 }
             }
         }
 
-        static void Optimize(OptimizeFlags flags = OptimizeFlags.None)
-        {
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine($"  Optimizing (Flags: {flags})...");
-
-            Process[] currentProcesses = Process.GetProcesses();
-
-            foreach (Process process in currentProcesses)
-            {
-                if (process.ProcessName == "explorer" && flags.HasFlag(OptimizeFlags.KillExplorerExe))
-                {
-                    process.Kill();
-                    continue;
-                }
-
-                foreach (string priority in PriorityProcesses)
-                {
-                    if (process.ProcessName.ToLower() == priority.ToLower())
-                    {
-                        Console.Write("  ");
-                        Console.BackgroundColor = ConsoleColor.Gray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-
-                        if (flags.HasFlag(OptimizeFlags.BoostPriorities))
-                        {
-                            ChangePriority(process, ProcessPriorityClass.AboveNormal);
-                            Console.WriteLine("Prioritized '" + process.ProcessName + "' because it is listed as a priority process.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Ignored: '" + process.ProcessName + "' because it is listed as a priority process.");
-                        }
-
-                        ResetColors();
-                    }
-                    else if (process.ProcessName != "svchost" && !flags.HasFlag(OptimizeFlags.IgnoreOrdinaryProcesses))
-                    {
-                        try
-                        {
-                            // Set process to idle priority.
-                            ChangePriority(process, ProcessPriorityClass.Idle);
-
-                            //LimitToOneCore(process);
-                        }
-                        catch { }
-                    }
-                }
-            }
-
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n  Optimized.");
-
-            Thread.Sleep(1500);
-
-            if (!flags.HasFlag(OptimizeFlags.NoHide))
-                ShowWindow(GetConsoleWindow(), SW_MINIMIZE);
-
-            Console.Write("  Press any key to go back."); Console.ReadKey();
-        }
-
-        static void Restore()
-        {
-            Console.ForegroundColor = ConsoleColor.Gray;
-            MenuManager.DrawTitle(AppName, "  Restoring", true);
-            //Console.WriteLine("Restoring...");
-
-            Process.Start(Environment.SystemDirectory + "\\..\\explorer.exe");
-
-            Process[] processes = Process.GetProcesses();
-
-            foreach (Process process in processes)
-            {
-                if (process.ProcessName != "svchost")
-                {
-                    try
-                    {
-                        ChangePriority(process, ProcessPriorityClass.Normal);// process.PriorityClass = ProcessPriorityClass.Normal;
-                    }
-                    catch { }
-                }
-            }
-
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n  Restored to normal priority.");
-
-            Console.Write("  Press any key to go back."); Console.ReadKey();
-        }
-
-        static void ChangePriority(Process p, ProcessPriorityClass priority, bool highlight = false)
-        {
-            // Original value
-            string original = p.PriorityClass.ToString();
-
-            // Set new value
-            p.PriorityClass = priority;
-
-            // Print changes
-            if (highlight)
-            {
-                Console.Write("  ");
-
-                Console.BackgroundColor = ConsoleColor.Gray;
-                Console.ForegroundColor = ConsoleColor.Black;
-                Console.WriteLine(p.ProcessName + " : " + original + " -> " + priority);
-
-                ResetColors();
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Gray;
-                Console.Write("  " + p.ProcessName + " : ");
-                //Console.ForegroundColor = ConsoleColor.Gray;
-                Console.Write(original);
-                ResetColors();
-                Console.Write(" -> ");
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine(priority);
-
-                ResetColors();
-            }
-        }
-
-        static void ResetColors()
+        /// <summary>
+        /// Reset the console colours back to their defaults.
+        /// </summary>
+        public static void ResetColours()
         {
             Console.BackgroundColor = defaultBackColor;
             Console.ForegroundColor = defaultForeColor;
         }
 
-        [Obsolete]
+        [Obsolete("Doesn't really have an effect on modern systems, needs fully implementing.")]
         static void LimitToOneCore(Process process)
         {
-            return; // Doesn't really work on decent systems.
-            //// Limit process to one core
-            //long AffinityMask = (long)process.ProcessorAffinity;
-            //AffinityMask = 0x0001; // Use only first core
-            //process.ProcessorAffinity = (IntPtr)AffinityMask;
+            // Doesn't really have an effect on modern systems.
+
+            // Limit process to one core
+            long AffinityMask = (long)process.ProcessorAffinity;
+            AffinityMask = 0x0001; // Use only first core
+            process.ProcessorAffinity = (IntPtr)AffinityMask;
         }
 
-        static void CreateDefaultPriorityProcessFile()
+        /// <summary>
+        /// Creates the default priority proccesses file if it does not exist.
+        /// </summary>
+        static void CreateDefaultPriorityProcessesFile()
         {
             if (!File.Exists(PriorityProcessesFile))
             {
                 using (var stream = File.Create(PriorityProcessesFile))
                 using (StreamWriter sw = new StreamWriter(stream))
                 {
-                    sw.WriteLine("##Put processes you don't want affected by the optimizer here.\n##Defaults\nSteam\nSteamService\nsteamwebhelper\nGameOverlayUI\n##Others");
+                    sw.WriteLine("##Put processes you don't want affected by the optimizer here." + 
+                        "\n##Defaults\nSteam\nSteamService\nsteamwebhelper\nGameOverlayUI\n" +
+                        "NVDisplay.Container\nnvsphelper64.exe\nffmpeg-mux64\nobs64\n" + 
+                        "\n##Others");
                     sw.Flush();
                     sw.Close();
                 }
@@ -320,11 +188,15 @@ namespace GameOptimizer
             }
         }
 
-        static void LoadPriorityProcesses()
+        /// <summary>
+        /// Reads the <see cref="PriorityProcessesFile"/> and returns the priority process names from within.
+        /// </summary>
+        /// <returns>All the priority process names in a <see cref="string"/> array.</returns>
+        static List<string> GetPriorityProcesses()
         {
-            PriorityProcesses.Clear();
+            CreateDefaultPriorityProcessesFile();
 
-            CreateDefaultPriorityProcessFile();
+            List<string> priorityProcessNames = new List<string>();
 
             string[] lines = File.ReadAllLines(PriorityProcessesFile);
 
@@ -332,13 +204,20 @@ namespace GameOptimizer
             {
                 if (lines[i].StartsWith("##")) continue;
 
-                PriorityProcesses.Add(lines[i]);
+                priorityProcessNames.Add(lines[i]);
             }
 
             Console.WriteLine(PriorityProcessesFile + " loaded.");
+
+            return priorityProcessNames;
         }
 
-        static OptimizeFlags GetFlags(string input)
+        /// <summary>
+        /// Parses <see cref="OptimizeFlags"/> out of the given <paramref name="input"/>.
+        /// </summary>
+        /// <param name="input">Format: "-switch1 -switch2"</param>
+        /// <returns>An <see cref="OptimizeFlags"/> enum with the various bitfields enabled if any of the given flags match a valid <see cref="OptimizeFlags"/> value.</returns>
+        static OptimizeFlags ParseFlags(string input)
         {
             if (string.IsNullOrEmpty(input)) return OptimizeFlags.None;
 
@@ -363,29 +242,5 @@ namespace GameOptimizer
 
             return output;
         }
-
-        //static List<CommandFlag> GetFlags(string input)
-        //{
-        //    if (!input.Contains(" "))
-        //        return null;
-
-        //    try
-        //    {
-        //        List<CommandFlag> flags = new List<CommandFlag>();
-        //        List<string> arr = input.Split(' ').ToList<string>();
-        //        arr.RemoveAt(0);
-        //        for (int i = 0; i < arr.Count; i++)
-        //        {
-        //            flags.Add(new CommandFlag(arr[i], arr[i + 1]));
-        //            i++;
-        //        }
-
-        //        return flags;
-        //    }
-        //    catch
-        //    {
-        //        return null;
-        //    }
-        //}
     }
 }

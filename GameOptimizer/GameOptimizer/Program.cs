@@ -401,28 +401,13 @@ namespace GameOptimizer
                 }
             }
 
-            string[] lines_array = File.ReadAllLines(filename);
+            string[] lines = File.ReadAllLines(filename);
 
-            List<string> lines = new List<string>(lines_array);
-
-            for (int i = 0; i < lines.Count; i++)
+            for (int i = 0; i < lines.Length; i++)
             {
-                string line = lines[i];
-                if (line.Length >= 1)
-                {
-                    if (line == "##") { lines.Remove(line); i--; }
-                    if (line.Substring(0, 2) == "##") { lines.Remove(line); i--; }
-                }
-                else if (line.Length == 0)
-                {
-                    lines.Remove(line);
-                    i--;
-                }
-            }
+                if (lines[i].StartsWith("##")) continue;
 
-            foreach (string line in lines)
-            {
-                PriorityProcesses.Add(line);
+                PriorityProcesses.Add(lines[i]);
             }
         }
 

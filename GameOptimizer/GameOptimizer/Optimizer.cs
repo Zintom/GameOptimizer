@@ -275,6 +275,8 @@ namespace GameOptimizer
             }
 
             _changedProcesses.Clear();
+
+            IsOptimized = false;
         }
 
         string GetReadableAffinity(IntPtr? affinity)

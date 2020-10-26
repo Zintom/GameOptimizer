@@ -44,9 +44,9 @@ namespace GameOptimizer
                 {
                     case 0:
                         MenuManager.DrawTitle(AppName, "  Select a quick option to execute", true);
-                        string[] quickCommands = new string[] { "1: Default Optimization",
-                            "2: Default optimization with Affinity optimization",
-                            "3: Boost Optimization",
+                        string[] quickCommands = new string[] { "1: Default optimization",
+                            "2: Default optimization plus Affinity optimization",
+                            "3: Boost priorities and de-prioritise everything else.",
                             "4: Just boost priority processes without touching other processes",
                             "Back"};
                         int quickResult = MenuManager.CreateMenu(quickCommands, false, 2);

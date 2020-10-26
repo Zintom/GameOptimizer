@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace GameOptimizer
 {
@@ -33,7 +28,9 @@ namespace GameOptimizer
         /// The optimizer should not de-prioritize 'non-priority' proccesses.
         /// </summary>
         IgnoreOrdinaryProcesses = 8,
-
+        /// <summary>
+        /// The optimizer should try to adjust the <see cref="Process.ProcessorAffinity"/> of 'non-priority' processes.
+        /// </summary>
         OptimizeAffinity = 16
     }
 
@@ -44,22 +41,37 @@ namespace GameOptimizer
     public enum ProcessAffinity
     {
         Null = 0,
-        Core0 = 1,
-        Core1 = 2,
-        Core2 = 4,
-        Core3 = 8,
-        Core4 = 16,
-        Core5 = 32,
-        Core6 = 64,
-        Core7 = 128,
-        Core8 = 256,
-        Core9 = 512,
-        Core10 = 1024,
-        Core11 = 2048,
-        Core12 = 4096,
-        Core13 = 8192,
-        Core14 = 16384,
-        Core15 = 32768,
+        CPU_0 = 1,
+        CPU_1 = 2,
+        CPU_2 = 4,
+        CPU_3 = 8,
+        CPU_4 = 16,
+        CPU_5 = 32,
+        CPU_6 = 64,
+        CPU_7 = 128,
+        CPU_8 = 256,
+        CPU_9 = 512,
+        CPU_10 = 1_024,
+        CPU_11 = 2_048,
+        CPU_12 = 4_096,
+        CPU_13 = 8_192,
+        CPU_14 = 16_384,
+        CPU_15 = 32_768,
+        CPU_16 = 65_536,
+        CPU_17 = 131_072,
+        CPU_18 = 262_144,
+        CPU_19 = 524_288,
+        CPU_20 = 1_048_576,
+        CPU_21 = 2_097_152,
+        CPU_22 = 4_194_304,
+        CPU_23 = 8_388_608,
+        CPU_24 = 16_777_216,
+        CPU_25 = 33_554_432,
+        CPU_26 = 67_108_864,
+        CPU_27 = 134_217_728,
+        CPU_28 = 268_435_456,
+        CPU_29 = 536_870_912,
+        CPU_30 = 1_073_741_824,
     }
 
     /// <summary>
@@ -150,12 +162,17 @@ namespace GameOptimizer
 
             _flagsUsedForOptimize = flags;
 
+            #region Flag Checks
             if (!flags.HasFlag(OptimizeFlags.BoostPriorities) && flags.HasFlag(OptimizeFlags.IgnoreOrdinaryProcesses))
-                throw new ArgumentException($"The given flags ({flags}) stop the Optimize method from actually doing any optimization, " +
+                _outputProvider?.OutputError($"The given flags ({flags}) stop the Optimize method from actually doing any optimization, " +
                     "in its current state, flags is saying to not boost priorities and to ignore non-priorities.");
+
+            if (flags.HasFlag(OptimizeFlags.IgnoreOrdinaryProcesses) && flags.HasFlag(OptimizeFlags.OptimizeAffinity))
+                _outputProvider?.OutputError($"Flag conflict! {OptimizeFlags.OptimizeAffinity} is overridden by {OptimizeFlags.IgnoreOrdinaryProcesses}.");
 
             if (flags.HasFlag(OptimizeFlags.OptimizeAffinity) && Environment.ProcessorCount < _optimizeAffinityMinimumCores)
                 _outputProvider?.OutputHighlight($"{OptimizeFlags.OptimizeAffinity} flag is not applied on machines with less than {_optimizeAffinityMinimumCores}.");
+            #endregion
 
             Process[] currentProcesses = Process.GetProcesses();
 

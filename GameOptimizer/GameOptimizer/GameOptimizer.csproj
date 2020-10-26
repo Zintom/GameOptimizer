@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="CommandHelpers.cs" />
     <Compile Include="Helpers\BitMask.cs" />
+    <Compile Include="Helpers\ConsoleWindowControl.cs" />
     <Compile Include="Optimizer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

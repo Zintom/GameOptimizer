@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace GameOptimizer
 {
+
     [Flags]
     public enum OptimizeFlags
     {
@@ -30,11 +31,34 @@ namespace GameOptimizer
         IgnoreOrdinaryProcesses = 8
     }
 
+    /// <summary>
+    /// A basic interface for outputting messages to the client.
+    /// </summary>
+    public interface IOutputProvider
+    {
+        /// <summary>
+        /// The given <paramref name="errorMessage"/> is an error.
+        /// </summary>
+        void OutputError(string errorMessage);
+
+        /// <summary>
+        /// The given <paramref name="message"/> should be highlighted.
+        /// </summary>
+        void OutputHighlight(string message);
+
+        /// <summary>
+        /// The given <paramref name="message"/> should be treated as 'normal' or 'default'.
+        /// </summary>
+        void Output(string message);
+    }
+
     public class Optimizer
     {
-        readonly IReadOnlyList<string> PriorityProcessNames;
+        readonly IReadOnlyList<string> _priorityProcessNames;
 
-        private OptimizeFlags FlagsUsedForOptimize = OptimizeFlags.None;
+        readonly IOutputProvider _outputProvider;
+
+        private OptimizeFlags _flagsUsedForOptimize = OptimizeFlags.None;
 
         /// <summary>
         /// <b>true</b> if optimization has been run. Returns to <b>false</b> when <see cref="Restore"/> is ran.
@@ -45,9 +69,15 @@ namespace GameOptimizer
         /// </summary>
         public bool ShowErrorCodes { get; set; } = false;
 
-        public Optimizer(IReadOnlyList<string> priorityProcessNames)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="priorityProcessNames"></param>
+        /// <param name="outputProvider">If not <b>null</b>, the optimizer will use this to output messages/problems or errors.</param>
+        public Optimizer(IReadOnlyList<string> priorityProcessNames, IOutputProvider outputProvider = null)
         {
-            PriorityProcessNames = priorityProcessNames;
+            _priorityProcessNames = priorityProcessNames;
+            _outputProvider = outputProvider;
         }
 
         public void Optimize(OptimizeFlags flags = OptimizeFlags.None)
@@ -55,7 +85,7 @@ namespace GameOptimizer
             if (IsOptimized) throw new InvalidOperationException("Cannot optimize whilst already optimized, please Restore first.");
             IsOptimized = true;
 
-            FlagsUsedForOptimize = flags;
+            _flagsUsedForOptimize = flags;
 
             if (!flags.HasFlag(OptimizeFlags.BoostPriorities) && flags.HasFlag(OptimizeFlags.IgnoreOrdinaryProcesses))
                 throw new ArgumentException($"The given flags ({flags}) stop the Optimize method from actually doing any optimization, " +
@@ -71,25 +101,19 @@ namespace GameOptimizer
                     continue;
                 }
 
-                foreach (string priority in PriorityProcessNames)
+                foreach (string priority in _priorityProcessNames)
                 {
                     if (process.ProcessName.ToLower() == priority.ToLower())
                     {
-                        Console.Write("  ");
-                        Console.BackgroundColor = ConsoleColor.Gray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-
                         if (flags.HasFlag(OptimizeFlags.BoostPriorities))
                         {
                             ChangePriority(process, ProcessPriorityClass.AboveNormal);
-                            Console.WriteLine("Prioritized '" + process.ProcessName + "' because it is listed as a priority process.");
+                            _outputProvider?.OutputHighlight("Prioritized '" + process.ProcessName + "' because it is listed as a priority process.");
                         }
                         else
                         {
-                            Console.WriteLine("Ignored: '" + process.ProcessName + "' because it is listed as a priority process.");
+                            _outputProvider?.OutputHighlight("Ignored: '" + process.ProcessName + "' because it is listed as a priority process.");
                         }
-
-                        Program.ResetColours();
 
                         goto continueLoop;
                     }
@@ -107,7 +131,7 @@ namespace GameOptimizer
 
         public void Restore()
         {
-            if (FlagsUsedForOptimize.HasFlag(OptimizeFlags.KillExplorerExe))
+            if (_flagsUsedForOptimize.HasFlag(OptimizeFlags.KillExplorerExe))
                 Process.Start(Environment.SystemDirectory + "\\..\\explorer.exe");
 
             Process[] processes = Process.GetProcesses();
@@ -135,13 +159,7 @@ namespace GameOptimizer
             {
                 if (!ShowErrorCodes) return;
 
-                Console.Write("  ");
-
-                Console.BackgroundColor = ConsoleColor.Red;
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine($"'{p.ProcessName}' could not be accessed due to Error Code {e.NativeErrorCode} ({e.Message}).");
-
-                Program.ResetColours();
+                _outputProvider?.OutputError($"'{p.ProcessName}' could not be accessed due to Error Code {e.NativeErrorCode} ({e.Message}).");
                 return;
             }
 
@@ -154,39 +172,15 @@ namespace GameOptimizer
             {
                 if (!ShowErrorCodes) return;
 
-                Console.Write("  ");
-
-                Console.BackgroundColor = ConsoleColor.Red;
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine($"'{p.ProcessName}' remains Priority.{p.PriorityClass} due to Error Code {e.NativeErrorCode} ({e.Message}).");
-
-                Program.ResetColours();
+                _outputProvider?.OutputError($"'{p.ProcessName}' remains Priority.{p.PriorityClass} due to Error Code {e.NativeErrorCode} ({e.Message}).");
                 return;
             }
 
             // Print changes
             if (highlight)
-            {
-                Console.Write("  ");
-
-                Console.BackgroundColor = ConsoleColor.Gray;
-                Console.ForegroundColor = ConsoleColor.Black;
-                Console.WriteLine(p.ProcessName + " : " + original + " -> " + priority);
-
-                Program.ResetColours();
-            }
+                _outputProvider?.OutputHighlight(p.ProcessName + " : " + original + " -> " + priority);
             else
-            {
-                Console.ForegroundColor = ConsoleColor.Gray;
-                Console.Write("  " + p.ProcessName + " : ");
-                Console.Write(original);
-                Program.ResetColours();
-                Console.Write(" -> ");
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine(priority);
-
-                Program.ResetColours();
-            }
+                _outputProvider?.Output(p.ProcessName + " : " + original + " -> " + priority);
         }
 
     }

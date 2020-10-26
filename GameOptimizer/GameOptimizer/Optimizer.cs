@@ -233,6 +233,10 @@ namespace GameOptimizer
 
             foreach (ProcessStateChange change in _changedProcesses)
             {
+                // If the process has exited there is no reason to continue as it will just throw an exception.
+                if (change.ChangedProcess.HasExited)
+                    continue;
+
                 try
                 {
                     if (change.PreChangePriority != null)

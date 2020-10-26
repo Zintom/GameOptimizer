@@ -237,6 +237,7 @@ namespace GameOptimizer
                 if (change.ChangedProcess.HasExited)
                     continue;
 
+                // Restore Priority
                 try
                 {
                     if (change.PreChangePriority != null)
@@ -248,6 +249,7 @@ namespace GameOptimizer
                 }
                 catch (System.ComponentModel.Win32Exception) { }
 
+                // Restore affinity
                 try
                 {
                     if (change.PreChangeAffinity != null)

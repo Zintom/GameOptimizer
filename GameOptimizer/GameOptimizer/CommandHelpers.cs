@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GameOptimizer.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,19 +14,22 @@ namespace GameOptimizer
 
         static void Command_OptimizeNoFlags()
         {
-            MenuManager.DrawTitle(AppName, $"  Optimizing in {OptimizeWaitTimeMillis / 1000} seconds...", true);
-            Thread.Sleep(OptimizeWaitTimeMillis);
+            MenuManager.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", true);
+            Thread.Sleep(_optimizeWaitTimeMillis);
             optimizer.Optimize();
 
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("\n  Optimized.");
+
+            Thread.Sleep(1500);
+            ConsoleWindowControl.MinimizeConsoleWindow();
 
             Console.Write("  Press any key to go back."); Console.ReadKey();
         }
 
         static void Command_OptimizeWithFlags(OptimizeFlags flags)
         {
-            MenuManager.DrawTitle(AppName, $"  Optimizing in {OptimizeWaitTimeMillis / 1000} seconds...", true);
+            MenuManager.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", true);
             Thread.Sleep(5000);
 
             Console.ForegroundColor = ConsoleColor.Gray;
@@ -36,10 +40,11 @@ namespace GameOptimizer
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("\n  Optimized.");
 
-            Thread.Sleep(1500);
-
             if (!flags.HasFlag(OptimizeFlags.NoHide))
-                ShowWindow(GetConsoleWindow(), SW_MINIMIZE);
+            {
+                Thread.Sleep(1500);
+                ConsoleWindowControl.MinimizeConsoleWindow();
+            }
 
             Console.Write("  Press any key to go back."); Console.ReadKey();
         }

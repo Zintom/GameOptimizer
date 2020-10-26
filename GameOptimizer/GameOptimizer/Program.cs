@@ -16,21 +16,14 @@ namespace GameOptimizer
     partial class Program
     {
 
-        static string PriorityProcessesFile = "priority_processes.txt";
+        const string AppName = "Zintom's Game Optimizer";
+        const string PriorityProcessesFile = "priority_processes.txt";
+        const string FileComment = "##";
 
         static ConsoleColor defaultBackColor;
         static ConsoleColor defaultForeColor;
 
-        [DllImport("kernel32.dll")]
-        public static extern IntPtr GetConsoleWindow();
-
-        [DllImport("user32.dll")]
-        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        public const int SW_MINIMIZE = 6;
-
-        static int OptimizeWaitTimeMillis = 5000;
-
-        const string AppName = "Zintom's Game Optimizer";
+        static int _optimizeWaitTimeMillis = 5000;
 
         static Optimizer optimizer;
 
@@ -40,7 +33,7 @@ namespace GameOptimizer
             defaultBackColor = Console.BackgroundColor;
             defaultForeColor = Console.ForegroundColor;
 
-            optimizer = new Optimizer(GetPriorityProcesses());
+            optimizer = new Optimizer(GetPriorityProcessesNames(), new CLIOutputDisplayer());
 
             while (true)
             {
@@ -133,15 +126,17 @@ namespace GameOptimizer
                 }
                 else if (command == "1")
                 {
-                    MenuManager.DrawTitle(AppName, $"  Boost optimizing in {OptimizeWaitTimeMillis / 1000} seconds...", true);
-                    Thread.Sleep(OptimizeWaitTimeMillis);
-                    optimizer.Optimize(OptimizeFlags.BoostPriorities);
+                    Command_OptimizeWithFlags(OptimizeFlags.BoostPriorities);
+                    //MenuManager.DrawTitle(AppName, $"  Boost optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", true);
+                    //Thread.Sleep(_optimizeWaitTimeMillis);
+                    //optimizer.Optimize(OptimizeFlags.BoostPriorities);
                 }
                 else if (command == "2")
                 {
-                    MenuManager.DrawTitle(AppName, $"  Boosting priority apps in {OptimizeWaitTimeMillis / 1000} seconds...", true);
-                    Thread.Sleep(OptimizeWaitTimeMillis);
-                    optimizer.Optimize(OptimizeFlags.BoostPriorities | OptimizeFlags.IgnoreOrdinaryProcesses);
+                    Command_OptimizeWithFlags(OptimizeFlags.BoostPriorities | OptimizeFlags.IgnoreOrdinaryProcesses);
+                    //MenuManager.DrawTitle(AppName, $"  Boosting priority apps in {_optimizeWaitTimeMillis / 1000} seconds...", true);
+                    //Thread.Sleep(_optimizeWaitTimeMillis);
+                    //optimizer.Optimize(OptimizeFlags.BoostPriorities | OptimizeFlags.IgnoreOrdinaryProcesses);
                 }
             }
         }
@@ -176,10 +171,10 @@ namespace GameOptimizer
                 using (var stream = File.Create(PriorityProcessesFile))
                 using (StreamWriter sw = new StreamWriter(stream))
                 {
-                    sw.WriteLine("##Put processes you don't want affected by the optimizer here." + 
-                        "\n##Defaults\nSteam\nSteamService\nsteamwebhelper\nGameOverlayUI\n" +
-                        "NVDisplay.Container\nnvsphelper64.exe\nffmpeg-mux64\nobs64\n" + 
-                        "\n##Others");
+                    sw.WriteLine(FileComment + "Put processes you don't want affected by the optimizer here.\n" + 
+                        FileComment + "Defaults\nSteam\nSteamService\nsteamwebhelper\nGameOverlayUI\n" +
+                        "NVDisplay.Container\nnvsphelper64.exe\nffmpeg-mux64\nobs64\n\n" + 
+                        FileComment + "Others");
                     sw.Flush();
                     sw.Close();
                 }
@@ -192,7 +187,7 @@ namespace GameOptimizer
         /// Reads the <see cref="PriorityProcessesFile"/> and returns the priority process names from within.
         /// </summary>
         /// <returns>All the priority process names in a <see cref="string"/> array.</returns>
-        static List<string> GetPriorityProcesses()
+        static List<string> GetPriorityProcessesNames()
         {
             CreateDefaultPriorityProcessesFile();
 
@@ -202,9 +197,10 @@ namespace GameOptimizer
 
             for (int i = 0; i < lines.Length; i++)
             {
-                if (lines[i].StartsWith("##")) continue;
-
-                priorityProcessNames.Add(lines[i]);
+                if (lines[i].Contains(FileComment))
+                    priorityProcessNames.Add(lines[i].Substring(0, lines[i].IndexOf(FileComment)).Trim());
+                else
+                    priorityProcessNames.Add(lines[i].Trim());
             }
 
             Console.WriteLine(PriorityProcessesFile + " loaded.");
@@ -241,6 +237,42 @@ namespace GameOptimizer
             }
 
             return output;
+        }
+
+        private class CLIOutputDisplayer : IOutputProvider
+        {
+            void IOutputProvider.Output(string message)
+            {
+                Console.Write("  ");
+
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine(message);
+
+                ResetColours();
+            }
+
+            void IOutputProvider.OutputError(string errorMessage)
+            {
+                Console.Write("  ");
+
+                Console.BackgroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine(errorMessage);
+
+                ResetColours();
+            }
+
+            void IOutputProvider.OutputHighlight(string message)
+            {
+                Console.Write("  ");
+
+                Console.BackgroundColor = ConsoleColor.Gray;
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.WriteLine(message);
+
+                ResetColours();
+            }
         }
     }
 }

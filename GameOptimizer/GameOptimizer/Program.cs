@@ -45,11 +45,12 @@ namespace GameOptimizer
                     case 0:
                         MenuManager.DrawTitle(AppName, "  Select a quick option to execute", true);
                         string[] quickCommands = new string[] { "1: Default Optimization",
-                            "2: Boost Optimization",
-                            "3: Just boost priority processes without touching other processes",
+                            "2: Default optimization with Affinity optimization",
+                            "3: Boost Optimization",
+                            "4: Just boost priority processes without touching other processes",
                             "Back"};
                         int quickResult = MenuManager.CreateMenu(quickCommands, false, 2);
-                        if (quickResult == MenuManager.ESCAPE_KEY || quickResult == 3) // If escape or back pressed.
+                        if (quickResult == MenuManager.ESCAPE_KEY || quickResult == 4) // If escape or back pressed.
                             continue;
 
                         command = quickResult.ToString();
@@ -95,6 +96,10 @@ namespace GameOptimizer
                 {
                     Command_Restore();
                 }
+                else if (command == "force restore")
+                {
+                    Command_ForceRestore();
+                }
                 else if (command == "toggle_errors")
                 {
                     optimizer.ShowErrorCodes = !optimizer.ShowErrorCodes;
@@ -126,17 +131,15 @@ namespace GameOptimizer
                 }
                 else if (command == "1")
                 {
-                    Command_OptimizeWithFlags(OptimizeFlags.BoostPriorities);
-                    //MenuManager.DrawTitle(AppName, $"  Boost optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", true);
-                    //Thread.Sleep(_optimizeWaitTimeMillis);
-                    //optimizer.Optimize(OptimizeFlags.BoostPriorities);
+                    Command_OptimizeWithFlags(OptimizeFlags.OptimizeAffinity);
                 }
                 else if (command == "2")
                 {
+                    Command_OptimizeWithFlags(OptimizeFlags.BoostPriorities);
+                }
+                else if (command == "3")
+                {
                     Command_OptimizeWithFlags(OptimizeFlags.BoostPriorities | OptimizeFlags.IgnoreOrdinaryProcesses);
-                    //MenuManager.DrawTitle(AppName, $"  Boosting priority apps in {_optimizeWaitTimeMillis / 1000} seconds...", true);
-                    //Thread.Sleep(_optimizeWaitTimeMillis);
-                    //optimizer.Optimize(OptimizeFlags.BoostPriorities | OptimizeFlags.IgnoreOrdinaryProcesses);
                 }
             }
         }
@@ -148,17 +151,6 @@ namespace GameOptimizer
         {
             Console.BackgroundColor = defaultBackColor;
             Console.ForegroundColor = defaultForeColor;
-        }
-
-        [Obsolete("Doesn't really have an effect on modern systems, needs fully implementing.")]
-        static void LimitToOneCore(Process process)
-        {
-            // Doesn't really have an effect on modern systems.
-
-            // Limit process to one core
-            long AffinityMask = (long)process.ProcessorAffinity;
-            AffinityMask = 0x0001; // Use only first core
-            process.ProcessorAffinity = (IntPtr)AffinityMask;
         }
 
         /// <summary>

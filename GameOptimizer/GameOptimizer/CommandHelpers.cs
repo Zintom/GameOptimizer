@@ -30,7 +30,7 @@ namespace GameOptimizer
         static void Command_OptimizeWithFlags(OptimizeFlags flags)
         {
             MenuManager.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", true);
-            Thread.Sleep(5000);
+            Thread.Sleep(_optimizeWaitTimeMillis);
 
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.WriteLine($"  Optimizing (Flags: {flags})...");
@@ -57,7 +57,20 @@ namespace GameOptimizer
             optimizer.Restore();
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n  Restored to normal priority.");
+            Console.WriteLine("\n  Restored.");
+
+            Console.Write("  Press any key to go back."); Console.ReadKey();
+        }
+
+        static void Command_ForceRestore()
+        {
+            Console.ForegroundColor = ConsoleColor.Gray;
+            MenuManager.DrawTitle(AppName, "  Force restoring process priorities to Normal.", true);
+
+            optimizer.ForceRestoreToNormal();
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("\n  Restored.");
 
             Console.Write("  Press any key to go back."); Console.ReadKey();
         }

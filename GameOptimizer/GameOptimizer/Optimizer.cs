@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -126,6 +127,17 @@ namespace GameOptimizer
             }
         }
 
+        /// <summary>
+        /// Compares two processes <see cref="Process.ProcessName"/>.
+        /// </summary>
+        private class ProcessSorter : IComparer<Process>
+        {
+            public int Compare(Process x, Process y)
+            {
+                return x.ProcessName.CompareTo(y.ProcessName);
+            }
+        }
+
         private readonly IReadOnlyList<string> _priorityProcessNames;
 
         private readonly IOutputProvider _outputProvider;
@@ -175,6 +187,9 @@ namespace GameOptimizer
             #endregion
 
             Process[] currentProcesses = Process.GetProcesses();
+
+            // Sort the array alphabetically.
+            Array.Sort(currentProcesses, new ProcessSorter());
 
             foreach (Process process in currentProcesses)
             {
@@ -229,7 +244,7 @@ namespace GameOptimizer
             {
                 _outputProvider?.OutputError("No changes to restore.");
                 return;
-            }
+            }   
 
             foreach (ProcessStateChange change in _changedProcesses)
             {

@@ -128,7 +128,7 @@ namespace GameOptimizer
         }
 
         /// <summary>
-        /// Compares two processes <see cref="Process.ProcessName"/>.
+        /// Compares two processes by their <see cref="Process.ProcessName"/>.
         /// </summary>
         private class ProcessSorter : IComparer<Process>
         {

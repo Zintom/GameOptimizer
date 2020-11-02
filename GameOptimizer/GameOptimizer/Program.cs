@@ -2,15 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
+using Zintom.GameOptimizer.Helpers;
 using ZintomShellHelper;
-using System.Windows.Forms;
 
-namespace GameOptimizer
+namespace Zintom.GameOptimizer
 {
 
     partial class Program
@@ -106,11 +101,11 @@ namespace GameOptimizer
                 }
                 else if (command == "audio")
                 {
-                    Process.Start("sndvol.exe", "-f " + SystemInformation.VirtualScreen.Width);
+                    Process.Start("sndvol.exe", "-f " + SystemMetrics.GetVirtualDisplaySize().Width);
                 }
                 else if (command == "audio mixer")
                 {
-                    Process.Start("sndvol.exe", "-m " + SystemInformation.VirtualScreen.Width);
+                    Process.Start("sndvol.exe", "-m " + SystemMetrics.GetVirtualDisplaySize().Width);
                 }
                 else if (command == "edit")
                 {

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GameOptimizer.Helpers
+namespace Zintom.GameOptimizer
 {
     /// <summary>
     /// Helper class for controlling the console window.

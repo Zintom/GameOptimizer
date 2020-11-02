@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GameOptimizer
+namespace Zintom.GameOptimizer
 {
     /// <summary>
     /// Helper class for using Flags/Bitmasks on <see cref="Enum"/> types.

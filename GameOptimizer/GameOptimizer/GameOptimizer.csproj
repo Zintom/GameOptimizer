@@ -6,9 +6,9 @@
     <RootNamespace>Zintom.GameOptimizer</RootNamespace>
     <Nullable>enable</Nullable>
     <NeutralLanguage>en</NeutralLanguage>
-    <Version>1.2.0</Version>
-    <AssemblyVersion>1.2.0</AssemblyVersion>
-    <FileVersion>1.2.0.0</FileVersion>
+    <Version>1.2.1</Version>
+    <AssemblyVersion>1.2.1</AssemblyVersion>
+    <FileVersion>1.2.1.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

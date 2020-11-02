@@ -1,16 +1,14 @@
-﻿using GameOptimizer.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
+using Zintom.GameOptimizer.Helpers;
 using ZintomShellHelper;
 
-namespace GameOptimizer
+namespace Zintom.GameOptimizer
 {
     partial class Program
     {
+        private const string Text_PressAnyKeyToGoBack = "  Press any key to go back.";
+        private const string Text_Optimized = "\n  Optimized.";
 
         static void Command_OptimizeNoFlags()
         {
@@ -19,15 +17,15 @@ namespace GameOptimizer
             optimizer.Optimize();
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n  Optimized.");
+            Console.WriteLine(Text_Optimized);
 
             Thread.Sleep(1500);
-            ConsoleWindowControl.MinimizeConsoleWindow();
+            NativeMethods.MinimizeConsoleWindow();
 
-            Console.Write("  Press any key to go back."); Console.ReadKey();
+            Console.Write(Text_PressAnyKeyToGoBack); Console.ReadKey();
         }
 
-        static void Command_OptimizeWithFlags(OptimizeFlags flags)
+        static void Command_OptimizeWithFlags(OptimizeConditions flags)
         {
             MenuManager.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", true);
             Thread.Sleep(_optimizeWaitTimeMillis);
@@ -38,15 +36,15 @@ namespace GameOptimizer
             optimizer.Optimize(flags);
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n  Optimized.");
+            Console.WriteLine(Text_Optimized);
 
-            if (!flags.HasFlag(OptimizeFlags.NoHide))
+            if (!flags.HasFlag(OptimizeConditions.NoHide))
             {
                 Thread.Sleep(1500);
-                ConsoleWindowControl.MinimizeConsoleWindow();
+                NativeMethods.MinimizeConsoleWindow();
             }
 
-            Console.Write("  Press any key to go back."); Console.ReadKey();
+            Console.Write(Text_PressAnyKeyToGoBack); Console.ReadKey();
         }
 
         static void Command_Restore()
@@ -59,7 +57,7 @@ namespace GameOptimizer
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("\n  Restored.");
 
-            Console.Write("  Press any key to go back."); Console.ReadKey();
+            Console.Write(Text_PressAnyKeyToGoBack); Console.ReadKey();
         }
 
         static void Command_ForceRestore()
@@ -72,7 +70,7 @@ namespace GameOptimizer
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("\n  Restored.");
 
-            Console.Write("  Press any key to go back."); Console.ReadKey();
+            Console.Write(Text_PressAnyKeyToGoBack); Console.ReadKey();
         }
 
     }

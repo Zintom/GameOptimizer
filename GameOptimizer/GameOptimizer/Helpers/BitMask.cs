@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GameOptimizer
+namespace Zintom.GameOptimizer
 {
     /// <summary>
     /// Helper class for using Flags/Bitmasks on <see cref="Enum"/> types.
@@ -66,8 +66,8 @@ namespace GameOptimizer
         /// <param name="endIndex">The index of the end bit <b>(evaluated right to left)</b>.</param>
         public static int SetBitRange(this int val, int startIndex, int endIndex)
         {
-            if (startIndex < 0) throw new IndexOutOfRangeException("The start index must be positive.");
-            if (endIndex > 31) throw new IndexOutOfRangeException("The end index must be less than 32(the number of bits in an Int32).");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException($"The {nameof(startIndex)} must be positive.");
+            if (endIndex > 31) throw new ArgumentOutOfRangeException($"The {nameof(endIndex)} must be less than 32(the number of bits in an Int32).");
 
             for (int i = startIndex; i < endIndex; i++)
             {
@@ -85,8 +85,8 @@ namespace GameOptimizer
         /// <param name="endIndex">The index of the end bit <b>(evaluated right to left)</b>.</param>
         public static int UnsetBitRange(this int val, int startIndex, int endIndex)
         {
-            if (startIndex < 0) throw new IndexOutOfRangeException("The start index must be positive.");
-            if (endIndex > 31) throw new IndexOutOfRangeException("The end index must be less than 32(the number of bits in an Int32).");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException($"The {nameof(startIndex)} must be positive.");
+            if (endIndex > 31) throw new ArgumentOutOfRangeException($"The {nameof(endIndex)} must be less than 32(the number of bits in an Int32).");
 
             for (int i = startIndex; i < endIndex; i++)
             {

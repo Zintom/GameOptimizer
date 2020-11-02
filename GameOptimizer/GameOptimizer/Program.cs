@@ -11,22 +11,29 @@ namespace Zintom.GameOptimizer
     partial class Program
     {
 
-        const string AppName = "Zintom's Game Optimizer";
+        private static string AppName = "Zintom's Game Optimizer";
         const string PriorityProcessesFile = "priority_processes.txt";
         const string FileComment = "##";
 
-        static ConsoleColor defaultBackColor;
-        static ConsoleColor defaultForeColor;
+        const int _optimizeWaitTimeMillis = 5000;
 
-        static int _optimizeWaitTimeMillis = 5000;
+        private static ConsoleColor _defaultBackColor;
+        private static ConsoleColor _defaultForeColor;
 
-        static Optimizer optimizer;
+        private static Optimizer optimizer = default!;
 
         static void Main(string[] args)
         {
+            AppName = "Zintom's Game Optimizer - " + GetVersionInformation();
+
+            if(args.Length > 0 && args[0] == "-melody!")
+            {
+                AppName = "Zintom's Melody Fluffer!";
+            }
+
             Console.Title = AppName;
-            defaultBackColor = Console.BackgroundColor;
-            defaultForeColor = Console.ForegroundColor;
+            _defaultBackColor = Console.BackgroundColor;
+            _defaultForeColor = Console.ForegroundColor;
 
             optimizer = new Optimizer(GetPriorityProcessesNames(), new CLIOutputDisplayer());
 
@@ -58,7 +65,7 @@ namespace Zintom.GameOptimizer
 
                         Console.Write("  >");
                         command = Console.ReadLine();
-                        if (command == "")
+                        if (string.IsNullOrEmpty(command))
                             continue;
 
                         Console.Clear();
@@ -76,7 +83,7 @@ namespace Zintom.GameOptimizer
 
                 Console.ForegroundColor = ConsoleColor.White;
 
-                if (command == "")
+                if (string.IsNullOrEmpty(command))
                     command = Console.ReadLine().ToLower();
 
                 if (command == "opt")
@@ -101,11 +108,11 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command == "audio")
                 {
-                    Process.Start("sndvol.exe", "-f " + SystemMetrics.GetVirtualDisplaySize().Width);
+                    Process.Start("sndvol.exe", "-f " + NativeMethods.GetVirtualDisplaySize().Width);
                 }
                 else if (command == "audio mixer")
                 {
-                    Process.Start("sndvol.exe", "-m " + SystemMetrics.GetVirtualDisplaySize().Width);
+                    Process.Start("sndvol.exe", "-m " + NativeMethods.GetVirtualDisplaySize().Width);
                 }
                 else if (command == "edit")
                 {
@@ -126,17 +133,29 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command == "1")
                 {
-                    Command_OptimizeWithFlags(OptimizeFlags.OptimizeAffinity);
+                    Command_OptimizeWithFlags(OptimizeConditions.OptimizeAffinity);
                 }
                 else if (command == "2")
                 {
-                    Command_OptimizeWithFlags(OptimizeFlags.BoostPriorities);
+                    Command_OptimizeWithFlags(OptimizeConditions.BoostPriorities);
                 }
                 else if (command == "3")
                 {
-                    Command_OptimizeWithFlags(OptimizeFlags.BoostPriorities | OptimizeFlags.IgnoreOrdinaryProcesses);
+                    Command_OptimizeWithFlags(OptimizeConditions.BoostPriorities | OptimizeConditions.IgnoreOrdinaryProcesses);
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="Version"/> information for the currently executing <see cref="System.Reflection.Assembly"/>.
+        /// </summary>
+        /// <returns>A string of the <see cref="Version"/> in the format "<c>Major.Minor.Build</c>"</returns>
+        static string GetVersionInformation()
+        {
+            Version? version = System.Reflection.Assembly.GetExecutingAssembly()?.GetName()?.Version;
+            if (version == null) return "Version information not available.";
+
+            return $"{version.Major}.{version.Minor}.{version.Build}";
         }
 
         /// <summary>
@@ -144,8 +163,8 @@ namespace Zintom.GameOptimizer
         /// </summary>
         public static void ResetColours()
         {
-            Console.BackgroundColor = defaultBackColor;
-            Console.ForegroundColor = defaultForeColor;
+            Console.BackgroundColor = _defaultBackColor;
+            Console.ForegroundColor = _defaultForeColor;
         }
 
         /// <summary>
@@ -184,7 +203,7 @@ namespace Zintom.GameOptimizer
 
             for (int i = 0; i < lines.Length; i++)
             {
-                if (lines[i].Contains(FileComment))
+                if (lines[i].Contains(FileComment, StringComparison.InvariantCulture))
                     priorityProcessNames.Add(lines[i].Substring(0, lines[i].IndexOf(FileComment)).Trim());
                 else
                     priorityProcessNames.Add(lines[i].Trim());
@@ -196,31 +215,31 @@ namespace Zintom.GameOptimizer
         }
 
         /// <summary>
-        /// Parses <see cref="OptimizeFlags"/> out of the given <paramref name="input"/>.
+        /// Parses <see cref="OptimizeConditions"/> out of the given <paramref name="input"/>.
         /// </summary>
         /// <param name="input">Format: "-switch1 -switch2"</param>
-        /// <returns>An <see cref="OptimizeFlags"/> enum with the various bitfields enabled if any of the given flags match a valid <see cref="OptimizeFlags"/> value.</returns>
-        static OptimizeFlags ParseFlags(string input)
+        /// <returns>An <see cref="OptimizeConditions"/> enum with the various bitfields enabled if any of the given flags match a valid <see cref="OptimizeConditions"/> value.</returns>
+        static OptimizeConditions ParseFlags(string input)
         {
-            if (string.IsNullOrEmpty(input)) return OptimizeFlags.None;
+            if (string.IsNullOrEmpty(input)) return OptimizeConditions.None;
 
-            OptimizeFlags output = OptimizeFlags.None;
+            OptimizeConditions output = OptimizeConditions.None;
 
             string[] rawFlags = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var flag in rawFlags)
             {
-                if (flag.ToLower() == "-" + OptimizeFlags.KillExplorerExe.ToString().ToLower())
-                    output.SetFlag(OptimizeFlags.KillExplorerExe);
+                if (flag.ToLower() == "-" + OptimizeConditions.KillExplorerExe.ToString().ToLower())
+                    output.SetFlag(OptimizeConditions.KillExplorerExe);
 
-                else if (flag.ToLower() == "-" + OptimizeFlags.NoHide.ToString().ToLower())
-                    output.SetFlag(OptimizeFlags.NoHide);
+                else if (flag.ToLower() == "-" + OptimizeConditions.NoHide.ToString().ToLower())
+                    output.SetFlag(OptimizeConditions.NoHide);
 
-                else if (flag.ToLower() == "-" + OptimizeFlags.BoostPriorities.ToString().ToLower())
-                    output.SetFlag(OptimizeFlags.BoostPriorities);
+                else if (flag.ToLower() == "-" + OptimizeConditions.BoostPriorities.ToString().ToLower())
+                    output.SetFlag(OptimizeConditions.BoostPriorities);
 
-                else if (flag.ToLower() == "-" + OptimizeFlags.IgnoreOrdinaryProcesses.ToString().ToLower())
-                    output.SetFlag(OptimizeFlags.IgnoreOrdinaryProcesses);
+                else if (flag.ToLower() == "-" + OptimizeConditions.IgnoreOrdinaryProcesses.ToString().ToLower())
+                    output.SetFlag(OptimizeConditions.IgnoreOrdinaryProcesses);
             }
 
             return output;

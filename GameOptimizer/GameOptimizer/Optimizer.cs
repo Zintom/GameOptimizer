@@ -6,10 +6,10 @@ namespace Zintom.GameOptimizer
 {
 
     /// <summary>
-    /// Flags that can modify the behaviour of the Optimizer.
+    /// A bitmask of conditions that can modify the behaviour of the Optimizer.
     /// </summary>
     [Flags]
-    public enum OptimizeFlags
+    public enum OptimizeConditions
     {
         None = 0,
         /// <summary>
@@ -38,9 +38,9 @@ namespace Zintom.GameOptimizer
     /// Maps <see cref="Process.ProcessorAffinity"/> to enum values.
     /// </summary>
     [Flags]
-    public enum ProcessAffinity
+    public enum ProcessAffinities
     {
-        Null = 0,
+        None = 0,
         CPU_0 = 1,
         CPU_1 = 2,
         CPU_2 = 4,
@@ -114,7 +114,7 @@ namespace Zintom.GameOptimizer
             internal ProcessPriorityClass? PreChangePriority { get; }
 
             /// <summary>
-            /// The <see cref="ProcessAffinity"/> prior to the change.
+            /// The <see cref="ProcessAffinities"/> prior to the change.
             /// </summary>
             internal IntPtr? PreChangeAffinity { get; }
 
@@ -131,19 +131,19 @@ namespace Zintom.GameOptimizer
         /// </summary>
         private class ProcessSorter : IComparer<Process>
         {
-            public int Compare(Process x, Process y)
+            public int Compare(Process? x, Process? y)
             {
-                return x.ProcessName.CompareTo(y.ProcessName);
+                return x?.ProcessName?.CompareTo(y?.ProcessName) ?? 0;
             }
         }
 
-        private readonly IReadOnlyList<string> _priorityProcessNames;
+        private readonly IOutputProvider? _outputProvider;
 
-        private readonly IOutputProvider _outputProvider;
+        private readonly IReadOnlyList<string> _priorityProcessNames;
 
         private readonly List<ProcessStateChange> _changedProcesses;
 
-        private OptimizeFlags _flagsUsedForOptimize = OptimizeFlags.None;
+        private OptimizeConditions _flagsUsedForOptimize = OptimizeConditions.None;
 
         private readonly int _optimizeAffinityMinimumCores = 4;
         private readonly int _affinityAllCores = 0.SetBitRange(0, Environment.ProcessorCount);
@@ -151,22 +151,21 @@ namespace Zintom.GameOptimizer
         /// <summary>
         /// <b>true</b> if optimization has been run. Returns to <b>false</b> when <see cref="Restore"/> is ran.
         /// </summary>
-        public bool IsOptimized { get; private set; } = false;
+        public bool IsOptimized { get; private set; }
         /// <summary>
         /// Whether the optimizer should display errors when it encounters them.
         /// </summary>
-        public bool ShowErrorCodes { get; set; } = false;
+        public bool ShowErrorCodes { get; set; }
 
-        /// <param name="priorityProcessNames"></param>
         /// <param name="outputProvider">If not <b>null</b>, the optimizer will use this to output messages/problems or errors.</param>
-        public Optimizer(IReadOnlyList<string> priorityProcessNames, IOutputProvider outputProvider = null)
+        public Optimizer(IReadOnlyList<string> priorityProcessNames, IOutputProvider? outputProvider = null)
         {
             _priorityProcessNames = priorityProcessNames;
             _outputProvider = outputProvider;
             _changedProcesses = new List<ProcessStateChange>();
         }
 
-        public void Optimize(OptimizeFlags flags = OptimizeFlags.None)
+        public void Optimize(OptimizeConditions flags = OptimizeConditions.None)
         {
             if (IsOptimized) throw new InvalidOperationException("Cannot optimize whilst already optimized, please Restore first.");
             IsOptimized = true;
@@ -174,15 +173,15 @@ namespace Zintom.GameOptimizer
             _flagsUsedForOptimize = flags;
 
             #region Flag Checks
-            if (!flags.HasFlag(OptimizeFlags.BoostPriorities) && flags.HasFlag(OptimizeFlags.IgnoreOrdinaryProcesses))
+            if (!flags.HasFlag(OptimizeConditions.BoostPriorities) && flags.HasFlag(OptimizeConditions.IgnoreOrdinaryProcesses))
                 _outputProvider?.OutputError($"The given flags ({flags}) stop the Optimize method from actually doing any optimization, " +
                     "in its current state, flags is saying to not boost priorities and to ignore non-priorities.");
 
-            if (flags.HasFlag(OptimizeFlags.IgnoreOrdinaryProcesses) && flags.HasFlag(OptimizeFlags.OptimizeAffinity))
-                _outputProvider?.OutputError($"Flag conflict! {OptimizeFlags.OptimizeAffinity} is overridden by {OptimizeFlags.IgnoreOrdinaryProcesses}.");
+            if (flags.HasFlag(OptimizeConditions.IgnoreOrdinaryProcesses) && flags.HasFlag(OptimizeConditions.OptimizeAffinity))
+                _outputProvider?.OutputError($"Flag conflict! {OptimizeConditions.OptimizeAffinity} is overridden by {OptimizeConditions.IgnoreOrdinaryProcesses}.");
 
-            if (flags.HasFlag(OptimizeFlags.OptimizeAffinity) && Environment.ProcessorCount < _optimizeAffinityMinimumCores)
-                _outputProvider?.OutputHighlight($"{OptimizeFlags.OptimizeAffinity} flag is not applied on machines with less than {_optimizeAffinityMinimumCores}.");
+            if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount < _optimizeAffinityMinimumCores)
+                _outputProvider?.OutputHighlight($"{OptimizeConditions.OptimizeAffinity} flag is not applied on machines with less than {_optimizeAffinityMinimumCores}.");
             #endregion
 
             Process[] currentProcesses = Process.GetProcesses();
@@ -192,7 +191,7 @@ namespace Zintom.GameOptimizer
 
             foreach (Process process in currentProcesses)
             {
-                if (process.ProcessName == "explorer" && flags.HasFlag(OptimizeFlags.KillExplorerExe))
+                if (process.ProcessName == "explorer" && flags.HasFlag(OptimizeConditions.KillExplorerExe))
                 {
                     process.Kill();
                     continue;
@@ -202,7 +201,7 @@ namespace Zintom.GameOptimizer
                 {
                     if (process.ProcessName.ToLower() == priority.ToLower())
                     {
-                        if (flags.HasFlag(OptimizeFlags.BoostPriorities))
+                        if (flags.HasFlag(OptimizeConditions.BoostPriorities))
                         {
                             ChangePriority(process, ProcessPriorityClass.AboveNormal);
                             _outputProvider?.OutputHighlight("Prioritized '" + process.ProcessName + "' because it is listed as a priority process.");
@@ -216,17 +215,17 @@ namespace Zintom.GameOptimizer
                     }
                 }
 
-                if (process.ProcessName != "svchost" && !flags.HasFlag(OptimizeFlags.IgnoreOrdinaryProcesses))
+                if (process.ProcessName != "svchost" && !flags.HasFlag(OptimizeConditions.IgnoreOrdinaryProcesses))
                 {
                     // Set process to idle priority.
                     ChangePriority(process, ProcessPriorityClass.Idle);
 
-                    if (flags.HasFlag(OptimizeFlags.OptimizeAffinity) && Environment.ProcessorCount >= _optimizeAffinityMinimumCores)
+                    if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount >= _optimizeAffinityMinimumCores)
                     {
                         // Set the affinity to the last 2 cores.
                         int newAffinity = 0.SetBitRange(Environment.ProcessorCount - 2, Environment.ProcessorCount);
 
-                        ChangeAffinity(process, (ProcessAffinity)newAffinity);
+                        ChangeAffinity(process, (ProcessAffinities)newAffinity);
                     }
                 }
 
@@ -236,7 +235,7 @@ namespace Zintom.GameOptimizer
 
         public void Restore()
         {
-            if (_flagsUsedForOptimize.HasFlag(OptimizeFlags.KillExplorerExe))
+            if (_flagsUsedForOptimize.HasFlag(OptimizeConditions.KillExplorerExe))
                 Process.Start(Environment.SystemDirectory + "\\..\\explorer.exe");
 
             if (_changedProcesses.Count == 0)
@@ -290,7 +289,7 @@ namespace Zintom.GameOptimizer
                 if (process.ProcessName != "svchost")
                 {
                     ChangePriority(process, ProcessPriorityClass.Normal);
-                    ChangeAffinity(process, (ProcessAffinity)_affinityAllCores);
+                    ChangeAffinity(process, (ProcessAffinities)_affinityAllCores);
                 }
             }
 
@@ -306,10 +305,10 @@ namespace Zintom.GameOptimizer
             if ((int)affinity == _affinityAllCores)
                 return "All cores";
             else
-                return ((ProcessAffinity)(int)affinity).ToString();
+                return ((ProcessAffinities)(int)affinity).ToString();
         }
 
-        void ChangeAffinity(Process process, ProcessAffinity affinity)
+        void ChangeAffinity(Process process, ProcessAffinities affinity)
         {
             try
             {

@@ -6,9 +6,14 @@
     <RootNamespace>Zintom.GameOptimizer</RootNamespace>
     <Nullable>enable</Nullable>
     <NeutralLanguage>en</NeutralLanguage>
-    <Version>1.2.1</Version>
-    <AssemblyVersion>1.2.1</AssemblyVersion>
-    <FileVersion>1.2.1.0</FileVersion>
+    <Version>1.2.2</Version>
+    <AssemblyVersion>1.2.2</AssemblyVersion>
+    <FileVersion>1.2.2.0</FileVersion>
+    <Authors>Tom Zsinko</Authors>
+    <Company>Zintom</Company>
+    <Description>Zintoms Game Optimizer boosts gaming performance by limiting the 'priority' of other processes and optionally limiting how many CPU cores they have access to (processor 'Affinity').</Description>
+    <PackageTags>game-booster boost performance performance-tuning</PackageTags>
+    <PackageId>ZintomsGameOptimizer</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +33,15 @@
       <HintPath>..\..\External Libs\ZintomShellHelper.dll</HintPath>
       <Private>true</Private>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="LICENSE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="README.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

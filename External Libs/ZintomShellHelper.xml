@@ -4,6 +4,9 @@
         <name>ZintomShellHelper</name>
     </assembly>
     <members>
+        <member name="M:ZintomShellHelper.MenuManager.CreateMenu(System.String,System.Boolean,System.Int32)">
+            <inheritdoc cref="M:ZintomShellHelper.MenuManager.CreateMenu(System.String[],System.Boolean,System.Int32)"/>
+        </member>
         <member name="M:ZintomShellHelper.MenuManager.CreateMenu(System.String[],System.Boolean,System.Int32)">
             <summary>
             Creates an option menu in text form. Returns the selected option.

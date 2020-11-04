@@ -1,5 +1,5 @@
 ## Zintoms Game Optimizer
-Boosts gaming performance by limiting the 'priority' of other processes and optionally limiting how many CPU cores they have access to (processor 'Affinity').
+Boosts gaming performance by limiting the 'priority' of other processes and optionally limiting how many CPU cores they can use (processor 'Affinity').
 
 ### Download
 To download, go to the GitHub releases section and download the *"Zintoms.Game.Optimizer.1.\*.\*.zip"* file;

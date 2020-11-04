@@ -3,7 +3,7 @@
 
 --- What does this application aim to do? ---
 
-	Zintoms Game Optimizer boosts gaming performance by limiting the 'priority' of other processes and optionally limiting how many CPU cores they have access to (processor 'Affinity').
+	Zintoms Game Optimizer boosts gaming performance by limiting the 'priority' of other processes and optionally limiting how many CPU cores they can use (processor 'Affinity').
 
 --- Important! Usage: ---
 	

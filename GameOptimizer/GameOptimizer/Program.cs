@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Zintom.GameOptimizer.Helpers;
+using Zintom.StorageFacility;
 using ZintomShellHelper;
 
 namespace Zintom.GameOptimizer
@@ -21,6 +22,14 @@ namespace Zintom.GameOptimizer
         private static ConsoleColor _defaultForeColor;
 
         private static Optimizer optimizer = default!;
+        private static Storage _settings = default!;
+
+        static void LoadSettings()
+        {
+            Console.WriteLine("Loading settings information..");
+
+            _settings = Storage.GetStorage("settings.dat");
+        }
 
         static void Main(string[] args)
         {
@@ -31,17 +40,20 @@ namespace Zintom.GameOptimizer
                 AppName = "Zintom's Melody Fluffer!";
             }
 
+            MenuManager.Init();
             Console.Title = AppName;
             _defaultBackColor = Console.BackgroundColor;
             _defaultForeColor = Console.ForegroundColor;
+
+            LoadSettings();
 
             optimizer = new Optimizer(GetPriorityProcessesNames(), new CLIOutputDisplayer());
 
             while (true)
             {
                 string command = "";
-                MenuManager.DrawTitle(AppName, optimizer.IsOptimized ? "  Currently optimized, use 'Restore' or the command 'res' to de-optimize." : "  For commands, goto help.", true);
-                int menuResult = MenuManager.CreateMenu(new string[] { "Quick Options", "Command", "Restore", "Help", "Exit" }, false, 2);
+                MenuManager.DrawTitle(AppName, optimizer.IsOptimized ? "  Currently optimized, use 'Restore' or the command 'res' to de-optimize." : "  Main Menu", true);
+                int menuResult = MenuManager.CreateMenu(new string[] { "Quick Options", "Command Input", "Restore", "Help", "Exit" }, false, 2);
                 switch (menuResult)
                 {
                     case 0:

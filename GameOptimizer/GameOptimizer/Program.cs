@@ -13,7 +13,7 @@ namespace Zintom.GameOptimizer
     {
 
         private static string AppName = "Zintom's Game Optimizer";
-        const string PriorityProcessesFile = "priority_processes.txt";
+        const string WhitelistFile = "process_whitelist.txt";
         const string FileComment = "##";
 
         const int _optimizeWaitTimeMillis = 5000;
@@ -47,7 +47,7 @@ namespace Zintom.GameOptimizer
 
             LoadSettings();
 
-            optimizer = new Optimizer(GetPriorityProcessesNames(), new CLIOutputDisplayer());
+            optimizer = new Optimizer(GetWhitelistedProcessNames(), new CLIOutputDisplayer());
 
             while (true)
             {
@@ -128,7 +128,7 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command == "edit")
                 {
-                    Process.Start("notepad.exe", "priority_processes.txt");
+                    Process.Start("notepad.exe", WhitelistFile);
                 }
                 else if (command == "help")
                 {
@@ -182,48 +182,48 @@ namespace Zintom.GameOptimizer
         /// <summary>
         /// Creates the default priority proccesses file if it does not exist.
         /// </summary>
-        static void CreateDefaultPriorityProcessesFile()
+        static void CreateDefaultProcessWhitelistFile()
         {
-            if (!File.Exists(PriorityProcessesFile))
+            if (!File.Exists(WhitelistFile))
             {
-                using (var stream = File.Create(PriorityProcessesFile))
+                using (var stream = File.Create(WhitelistFile))
                 using (StreamWriter sw = new StreamWriter(stream))
                 {
-                    sw.WriteLine(FileComment + "Put processes you don't want affected by the optimizer here.\n" + 
-                        FileComment + "Defaults\nSteam\nSteamService\nsteamwebhelper\nGameOverlayUI\n" +
-                        "NVDisplay.Container\nnvsphelper64.exe\nffmpeg-mux64\nobs64\n\n" + 
-                        FileComment + "Others");
+                    sw.WriteLine(FileComment + " Put processes you don't want affected by the optimizer here.\n" + 
+                        FileComment + " Apps\nSteam\nSteamService\nsteamwebhelper\nGameOverlayUI\n" +
+                        "NVDisplay.Container\nnvsphelper64.exe\nffmpeg-mux64 ## OBS's encoder\nobs64 ## Open Broadcaster\ndiscord\n\n" + 
+                        FileComment + " Games\njavaw ## Minecraft");
                     sw.Flush();
                     sw.Close();
                 }
 
-                Console.WriteLine("Generated " + PriorityProcessesFile + " as it did not exist.");
+                Console.WriteLine("Generated " + WhitelistFile + " as it did not exist.");
             }
         }
 
         /// <summary>
-        /// Reads the <see cref="PriorityProcessesFile"/> and returns the priority process names from within.
+        /// Reads the <see cref="WhitelistFile"/> and returns the priority process names from within.
         /// </summary>
         /// <returns>All the priority process names in a <see cref="string"/> array.</returns>
-        static List<string> GetPriorityProcessesNames()
+        static List<string> GetWhitelistedProcessNames()
         {
-            CreateDefaultPriorityProcessesFile();
+            CreateDefaultProcessWhitelistFile();
 
-            List<string> priorityProcessNames = new List<string>();
+            List<string> whitelistedProcessNames = new List<string>();
 
-            string[] lines = File.ReadAllLines(PriorityProcessesFile);
+            string[] lines = File.ReadAllLines(WhitelistFile);
 
             for (int i = 0; i < lines.Length; i++)
             {
                 if (lines[i].Contains(FileComment, StringComparison.InvariantCulture))
-                    priorityProcessNames.Add(lines[i].Substring(0, lines[i].IndexOf(FileComment)).Trim());
+                    whitelistedProcessNames.Add(lines[i].Substring(0, lines[i].IndexOf(FileComment)).Trim());
                 else
-                    priorityProcessNames.Add(lines[i].Trim());
+                    whitelistedProcessNames.Add(lines[i].Trim());
             }
 
-            Console.WriteLine(PriorityProcessesFile + " loaded.");
+            Console.WriteLine(WhitelistFile + " loaded.");
 
-            return priorityProcessNames;
+            return whitelistedProcessNames;
         }
 
         /// <summary>

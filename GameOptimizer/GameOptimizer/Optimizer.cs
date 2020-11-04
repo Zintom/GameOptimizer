@@ -139,7 +139,7 @@ namespace Zintom.GameOptimizer
 
         private readonly IOutputProvider? _outputProvider;
 
-        private readonly IReadOnlyList<string> _priorityProcessNames;
+        private readonly IReadOnlyList<string> _whitelistedProcessNames;
 
         private readonly List<ProcessStateChange> _changedProcesses;
 
@@ -158,9 +158,9 @@ namespace Zintom.GameOptimizer
         public bool ShowErrorCodes { get; set; }
 
         /// <param name="outputProvider">If not <b>null</b>, the optimizer will use this to output messages/problems or errors.</param>
-        public Optimizer(IReadOnlyList<string> priorityProcessNames, IOutputProvider? outputProvider = null)
+        public Optimizer(IReadOnlyList<string> whitelistedProcessNames, IOutputProvider? outputProvider = null)
         {
-            _priorityProcessNames = priorityProcessNames;
+            _whitelistedProcessNames = whitelistedProcessNames;
             _outputProvider = outputProvider;
             _changedProcesses = new List<ProcessStateChange>();
         }
@@ -197,7 +197,7 @@ namespace Zintom.GameOptimizer
                     continue;
                 }
 
-                foreach (string priority in _priorityProcessNames)
+                foreach (string priority in _whitelistedProcessNames)
                 {
                     if (process.ProcessName.ToLower() == priority.ToLower())
                     {

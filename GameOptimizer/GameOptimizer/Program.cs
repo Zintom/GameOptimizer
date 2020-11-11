@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection.Metadata.Ecma335;
 using Zintom.GameOptimizer.Helpers;
 using Zintom.StorageFacility;
 using ZintomShellHelper;
@@ -55,13 +56,13 @@ namespace Zintom.GameOptimizer
                 switch (menuResult)
                 {
                     case 0:
-                        if (optimizer.IsOptimized) break;
+                        if (optimizer.IsOptimized) continue;
 
                         MenuManager.DrawTitle(AppName, "  Select a quick option to execute", true);
                         string[] quickCommands = new string[] { "1: Default optimization",
                             "2: Default optimization plus Affinity optimization",
-                            "3: Boost priorities and de-prioritise everything else.",
-                            "4: Just boost priority processes without touching other processes",
+                            "3: Boost whitelisted processes and de-prioritise everything else.",
+                            "4: Just boost whitelisted processes without touching other processes",
                             "Back"};
                         int quickResult = MenuManager.CreateMenu(quickCommands, false, 2);
                         if (quickResult == MenuManager.ESCAPE_KEY || quickResult == 4) // If escape or back pressed.
@@ -72,7 +73,7 @@ namespace Zintom.GameOptimizer
                         Console.Clear();
                         break;
                     case 1:
-                        if (optimizer.IsOptimized) break;
+                        if (optimizer.IsOptimized) continue;
 
                         MenuManager.DrawTitle(AppName, "  Enter command to execute:", true);
                         MenuManager.Reset();
@@ -96,9 +97,6 @@ namespace Zintom.GameOptimizer
                 }
 
                 Console.ForegroundColor = ConsoleColor.White;
-
-                if (string.IsNullOrEmpty(command))
-                    command = Console.ReadLine()?.ToLower() ?? "";
 
                 if (command == "opt")
                 {
@@ -134,8 +132,18 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command == "help")
                 {
-                    MenuManager.DrawTitle(AppName, "  Help", "  opt         | Optimizes games by isolating cores and adjusting low priorities.\n  res         | Restores all processes back to normal.\n  edit        | Allows you to edit the priorty process list.\n  audio       | Launches SndVol.exe -f allowing you to change the computers master volume.\n  audio mixer | Launches SndVol.exe -m opening the volume mixer.", true);
-                    MenuManager.CreateBackMenu(2);
+                    MenuManager.DrawTitle(AppName, 
+                        "  Help", "  opt         | Optimizes games by isolating cores and adjusting low priorities." + 
+                                "\n  res         | Restores all processes back to normal." + 
+                                "\n  edit        | Allows you to edit the priorty process list." + 
+                                "\n  audio       | Launches SndVol.exe -f allowing you to change the computers master volume." + 
+                                "\n  audio mixer | Launches SndVol.exe -m opening the volume mixer." +
+                                "\n", true);
+                    int result = MenuManager.CreateMenu(new string[] { "Open README.txt", "Open LICENSE.txt", "Back" }, false, 2);
+
+                    if (result == 0) Process.Start("notepad.exe" , "README.txt");
+                    if (result == 1) Process.Start("notepad.exe", "LICENSE.txt");
+                    continue;
                 }
                 else if (command == "exit")
                 {

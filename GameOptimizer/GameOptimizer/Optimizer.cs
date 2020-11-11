@@ -291,7 +291,7 @@ namespace Zintom.GameOptimizer
 
             foreach (string changeString in _changedProcessesStorage.Strings.Values)
             {
-                ProcessStateChange change = ProcessStateChange.Parse(changeString, _outputProvider);
+                ProcessStateChange change = ProcessStateChange.Parse(changeString, ShowErrorCodes ? _outputProvider : null);
 
                 // If the process has exited there is no reason to continue as it will just throw an exception.
                 try
@@ -331,7 +331,6 @@ namespace Zintom.GameOptimizer
             }
 
             _changedProcessesStorage.Edit().Clear(true).Commit();
-            //_changedProcesses.Clear();
 
             IsOptimized = false;
         }
@@ -350,7 +349,6 @@ namespace Zintom.GameOptimizer
             }
 
             _changedProcessesStorage.Edit().Clear(true).Commit();
-            //_changedProcesses.Clear();
 
             IsOptimized = false;
         }
@@ -377,7 +375,6 @@ namespace Zintom.GameOptimizer
                 // New affinity assignment was sucessful so log the change.
                 var processStateChange = new ProcessStateChange(process, null, preChangeAffinity);
                 _changedProcessesStorage.Edit().PutValue(processStateChange.GetHashCode().ToString(), processStateChange.ToString()).Commit();
-                //_changedProcesses.Add(new ProcessStateChange(process, null, preChangeAffinity));
 
                 _outputProvider?.Output(process.ProcessName + " : Affinity -> " + GetReadableAffinity((IntPtr)affinity));
             }
@@ -417,8 +414,6 @@ namespace Zintom.GameOptimizer
                 // Priority change was successful so log the change.
                 var processStateChange = new ProcessStateChange(p, preChangePriority, null);
                 _changedProcessesStorage.Edit().PutValue(processStateChange.GetHashCode().ToString(), processStateChange.ToString()).Commit();
-
-                //_changedProcesses.Add(new ProcessStateChange(p, preChangePriority, null));
             }
             catch (System.ComponentModel.Win32Exception e)
             {

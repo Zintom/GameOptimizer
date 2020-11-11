@@ -9,6 +9,9 @@ dotnet publish -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true --sel
 // LINUX 64-BIT
 dotnet publish -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -r linux-x64
 
+// CROSS PLATFORM
+dotnet publish -c Release
+
 All runtime targets(covers all common operating systems):
 linux-x64, linux-arm
 win-x64, win-x86

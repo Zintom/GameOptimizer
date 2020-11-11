@@ -249,11 +249,11 @@ namespace Zintom.GameOptimizer
                         if (flags.HasFlag(OptimizeConditions.BoostPriorities))
                         {
                             ChangePriority(process, ProcessPriorityClass.AboveNormal);
-                            _outputProvider?.OutputHighlight("Prioritized '" + process.ProcessName + "' because it is listed as a priority process.");
+                            _outputProvider?.OutputHighlight("Prioritized '" + process.ProcessName + "' because it is a whitelisted process.");
                         }
                         else
                         {
-                            _outputProvider?.OutputHighlight("Ignored: '" + process.ProcessName + "' because it is listed as a priority process.");
+                            _outputProvider?.OutputHighlight("Ignored: '" + process.ProcessName + "' because it is a whitelisted process.");
                         }
 
                         goto continueLoop;

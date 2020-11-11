@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Zintom.GameOptimizer.Helpers;
 using Zintom.StorageFacility;
@@ -23,13 +24,6 @@ namespace Zintom.GameOptimizer
 
         private static Optimizer optimizer = default!;
         private static Storage _settings = default!;
-
-        static void LoadSettings()
-        {
-            Console.WriteLine("Loading settings information..");
-
-            _settings = Storage.GetStorage("settings.dat");
-        }
 
         static void Main(string[] args)
         {
@@ -76,7 +70,7 @@ namespace Zintom.GameOptimizer
                         MenuManager.Reset();
 
                         Console.Write("  >");
-                        command = Console.ReadLine();
+                        command = Console.ReadLine() ?? "";
                         if (string.IsNullOrEmpty(command))
                             continue;
 
@@ -96,7 +90,7 @@ namespace Zintom.GameOptimizer
                 Console.ForegroundColor = ConsoleColor.White;
 
                 if (string.IsNullOrEmpty(command))
-                    command = Console.ReadLine().ToLower();
+                    command = Console.ReadLine()?.ToLower() ?? "";
 
                 if (command == "opt")
                 {
@@ -104,7 +98,7 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command.StartsWith("opt "))
                 {
-                    Command_OptimizeWithFlags(ParseFlags(command.Substring(4)));
+                    Command_OptimizeWithFlags(ParseFlags(command[4..]));
                 }
                 else if (command == "res")
                 {
@@ -158,6 +152,13 @@ namespace Zintom.GameOptimizer
             }
         }
 
+        static void LoadSettings()
+        {
+            Console.WriteLine("Loading settings information..");
+
+            _settings = Storage.GetStorage("settings.dat");
+        }
+
         /// <summary>
         /// Gets the <see cref="Version"/> information for the currently executing <see cref="System.Reflection.Assembly"/>.
         /// </summary>
@@ -189,10 +190,11 @@ namespace Zintom.GameOptimizer
                 using (var stream = File.Create(WhitelistFile))
                 using (StreamWriter sw = new StreamWriter(stream))
                 {
-                    sw.WriteLine(FileComment + " Put processes you don't want affected by the optimizer here.\n" + 
-                        FileComment + " Apps\nSteam\nSteamService\nsteamwebhelper\nGameOverlayUI\n" +
-                        "NVDisplay.Container\nnvsphelper64.exe\nffmpeg-mux64 ## OBS's encoder\nobs64 ## Open Broadcaster\ndiscord\n\n" + 
-                        FileComment + " Games\njavaw ## Minecraft");
+                    sw.WriteLine(string.Format(
+                        "{0} Put processes you don't want affected by the optimizer here.{1}" +
+                        "{0} Apps{1}Steam{1}SteamService{1}steamwebhelper{1}GameOverlayUI{1}" +
+                        "NVDisplay.Container{1}nvsphelper64.exe{1}ffmpeg-mux64 ## OBS's encoder{1}obs64 ## Open Broadcaster{1}discord{1}{1}" +
+                        "{0} Games{1}javaw {1}Minecraft", FileComment, Environment.NewLine));
                     sw.Flush();
                     sw.Close();
                 }

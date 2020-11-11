@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Zintom.StorageFacility;
 
 namespace Zintom.GameOptimizer
 {
@@ -106,23 +107,62 @@ namespace Zintom.GameOptimizer
             /// <summary>
             /// The <see cref="Process"/> that has been modified.
             /// </summary>
-            internal Process ChangedProcess { get; }
+            public Process? ChangedProcess { get; }
 
             /// <summary>
             /// The <see cref="ProcessPriorityClass"/> prior to the change.
             /// </summary>
-            internal ProcessPriorityClass? PreChangePriority { get; }
+            public ProcessPriorityClass? PreChangePriority { get; }
 
             /// <summary>
             /// The <see cref="ProcessAffinities"/> prior to the change.
             /// </summary>
-            internal IntPtr? PreChangeAffinity { get; }
+            public IntPtr? PreChangeAffinity { get; }
 
-            internal ProcessStateChange(Process process, ProcessPriorityClass? preChangePriority, IntPtr? preChangeAffinity)
+            public ProcessStateChange(Process? process, ProcessPriorityClass? preChangePriority, IntPtr? preChangeAffinity)
             {
                 ChangedProcess = process;
                 PreChangePriority = preChangePriority;
                 PreChangeAffinity = preChangeAffinity;
+            }
+
+            public override string ToString()
+            {
+                return $"{ChangedProcess?.Id ?? 0},{(PreChangePriority == null ? "null" : (int)PreChangePriority)},{(PreChangeAffinity == null ? "null" : PreChangeAffinity)}";
+            }
+
+            /// <summary>
+            /// Parses a given input, grammer format: <c>"int,null|int,null|int"</c>
+            /// </summary>
+            /// <returns>A <see cref="ProcessStateChange"/> with the values built from <paramref name="input"/>.</returns>
+            public static ProcessStateChange Parse(string input, IOutputProvider? outputProvider)
+            {
+                string[] sections = input.Split(",");
+
+                int pId = int.Parse(sections[0]);
+                ProcessPriorityClass? pPriority = sections[1] != "null" ? (ProcessPriorityClass)int.Parse(sections[1]) : null;
+                IntPtr? pAffinity = sections[2] != "null" ? IntPtr.Parse(sections[2]) : null;
+
+                Process? pProcess = null;
+                try
+                {
+                    pProcess = Process.GetProcessById(pId);
+                }
+                catch (ArgumentException e)
+                {
+                    outputProvider?.OutputError(e.Message);
+                }
+                return new ProcessStateChange(pProcess, pPriority, pAffinity);
+            }
+
+            /// <summary>
+            /// Generates the HashCode for this <see cref="ProcessStateChange"/>,
+            /// </summary>
+            public override int GetHashCode()
+            {
+                return (ChangedProcess?.Id ?? -1) +
+                       (PreChangePriority != null ? (int)PreChangePriority : -1) +
+                       (PreChangeAffinity != null ? (int)PreChangeAffinity : -1);
             }
         }
 
@@ -141,7 +181,7 @@ namespace Zintom.GameOptimizer
 
         private readonly IReadOnlyList<string> _whitelistedProcessNames;
 
-        private readonly List<ProcessStateChange> _changedProcesses;
+        private readonly Storage _changedProcessesStorage;
 
         private OptimizeConditions _flagsUsedForOptimize = OptimizeConditions.None;
 
@@ -162,7 +202,9 @@ namespace Zintom.GameOptimizer
         {
             _whitelistedProcessNames = whitelistedProcessNames;
             _outputProvider = outputProvider;
-            _changedProcesses = new List<ProcessStateChange>();
+
+            _changedProcessesStorage = Storage.GetStorage("restore_state");
+            IsOptimized = _changedProcessesStorage.Strings.Count != 0;
         }
 
         public void Optimize(OptimizeConditions flags = OptimizeConditions.None)
@@ -183,6 +225,9 @@ namespace Zintom.GameOptimizer
             if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount < _optimizeAffinityMinimumCores)
                 _outputProvider?.OutputHighlight($"{OptimizeConditions.OptimizeAffinity} flag is not applied on machines with less than {_optimizeAffinityMinimumCores}.");
             #endregion
+
+            // Clear the restore_state file
+            _changedProcessesStorage.Edit().Clear(true).Commit();
 
             Process[] currentProcesses = Process.GetProcesses();
 
@@ -238,17 +283,27 @@ namespace Zintom.GameOptimizer
             if (_flagsUsedForOptimize.HasFlag(OptimizeConditions.KillExplorerExe))
                 Process.Start(Environment.SystemDirectory + "\\..\\explorer.exe");
 
-            if (_changedProcesses.Count == 0)
+            if (_changedProcessesStorage.Strings.Count == 0)
             {
                 _outputProvider?.OutputError("No changes to restore.");
                 return;
             }   
 
-            foreach (ProcessStateChange change in _changedProcesses)
+            foreach (string changeString in _changedProcessesStorage.Strings.Values)
             {
+                ProcessStateChange change = ProcessStateChange.Parse(changeString, _outputProvider);
+
                 // If the process has exited there is no reason to continue as it will just throw an exception.
-                if (change.ChangedProcess.HasExited)
-                    continue;
+                try
+                {
+                    if (change.ChangedProcess == null || change.ChangedProcess.HasExited)
+                        continue;
+                }
+                catch (System.ComponentModel.Win32Exception) { continue; }
+
+                // Priority and affinity are in their own
+                // seperate catch blocks because you might be able to change
+                // a processes priority but not its affinity.
 
                 // Restore Priority
                 try
@@ -275,7 +330,8 @@ namespace Zintom.GameOptimizer
                 catch (System.ComponentModel.Win32Exception) { }
             }
 
-            _changedProcesses.Clear();
+            _changedProcessesStorage.Edit().Clear(true).Commit();
+            //_changedProcesses.Clear();
 
             IsOptimized = false;
         }
@@ -293,7 +349,8 @@ namespace Zintom.GameOptimizer
                 }
             }
 
-            _changedProcesses.Clear();
+            _changedProcessesStorage.Edit().Clear(true).Commit();
+            //_changedProcesses.Clear();
 
             IsOptimized = false;
         }
@@ -318,7 +375,9 @@ namespace Zintom.GameOptimizer
                 process.ProcessorAffinity = (IntPtr)affinity;
 
                 // New affinity assignment was sucessful so log the change.
-                _changedProcesses.Add(new ProcessStateChange(process, null, preChangeAffinity));
+                var processStateChange = new ProcessStateChange(process, null, preChangeAffinity);
+                _changedProcessesStorage.Edit().PutValue(processStateChange.GetHashCode().ToString(), processStateChange.ToString()).Commit();
+                //_changedProcesses.Add(new ProcessStateChange(process, null, preChangeAffinity));
 
                 _outputProvider?.Output(process.ProcessName + " : Affinity -> " + GetReadableAffinity((IntPtr)affinity));
             }
@@ -356,7 +415,10 @@ namespace Zintom.GameOptimizer
                 p.PriorityClass = newPriority;
 
                 // Priority change was successful so log the change.
-                _changedProcesses.Add(new ProcessStateChange(p, preChangePriority, null));
+                var processStateChange = new ProcessStateChange(p, preChangePriority, null);
+                _changedProcessesStorage.Edit().PutValue(processStateChange.GetHashCode().ToString(), processStateChange.ToString()).Commit();
+
+                //_changedProcesses.Add(new ProcessStateChange(p, preChangePriority, null));
             }
             catch (System.ComponentModel.Win32Exception e)
             {

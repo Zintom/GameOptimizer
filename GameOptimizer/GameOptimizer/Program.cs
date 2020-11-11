@@ -76,7 +76,7 @@ namespace Zintom.GameOptimizer
                         MenuManager.Reset();
 
                         Console.Write("  >");
-                        command = Console.ReadLine();
+                        command = Console.ReadLine() ?? "";
                         if (string.IsNullOrEmpty(command))
                             continue;
 
@@ -96,7 +96,7 @@ namespace Zintom.GameOptimizer
                 Console.ForegroundColor = ConsoleColor.White;
 
                 if (string.IsNullOrEmpty(command))
-                    command = Console.ReadLine().ToLower();
+                    command = Console.ReadLine()?.ToLower() ?? "";
 
                 if (command == "opt")
                 {
@@ -104,7 +104,7 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command.StartsWith("opt "))
                 {
-                    Command_OptimizeWithFlags(ParseFlags(command.Substring(4)));
+                    Command_OptimizeWithFlags(ParseFlags(command[4..]));
                 }
                 else if (command == "res")
                 {

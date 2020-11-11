@@ -74,7 +74,7 @@ namespace Zintom.GameOptimizer
                     case 1:
                         if (optimizer.IsOptimized) break;
 
-                        MenuManager.DrawTitle("Zintom's Game Optimizer", "  Enter command to execute:", true);
+                        MenuManager.DrawTitle(AppName, "  Enter command to execute:", true);
                         MenuManager.Reset();
 
                         Console.Write("  >");
@@ -139,6 +139,7 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command == "exit")
                 {
+                    Console.Clear();
                     Environment.Exit(0);
                 }
                 else if (command == "0")

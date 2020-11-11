@@ -46,11 +46,17 @@ namespace Zintom.GameOptimizer
             while (true)
             {
                 string command = "";
-                MenuManager.DrawTitle(AppName, optimizer.IsOptimized ? "  Currently optimized, use 'Restore' or the command 'res' to de-optimize." : "  Main Menu", true);
-                int menuResult = MenuManager.CreateMenu(new string[] { "Quick Options", "Command Input", "Restore", "Help", "Exit" }, false, 2);
+                MenuManager.DrawTitle(AppName, optimizer.IsOptimized ? "  Currently optimized, use 'Restore' or the command 'res' to de-optimize.\n  Some menu options are unavailable because of this." : "  Main Menu", true);
+                int menuResult = MenuManager.CreateMenu(new string[] { optimizer.IsOptimized ? "Unavailable" : "Quick Options", 
+                                                                       optimizer.IsOptimized ? "Unavailable" : "Command Input", 
+                                                                       "Restore",
+                                                                       "Help", 
+                                                                       "Exit" }, false, 2);
                 switch (menuResult)
                 {
                     case 0:
+                        if (optimizer.IsOptimized) break;
+
                         MenuManager.DrawTitle(AppName, "  Select a quick option to execute", true);
                         string[] quickCommands = new string[] { "1: Default optimization",
                             "2: Default optimization plus Affinity optimization",
@@ -66,6 +72,8 @@ namespace Zintom.GameOptimizer
                         Console.Clear();
                         break;
                     case 1:
+                        if (optimizer.IsOptimized) break;
+
                         MenuManager.DrawTitle("Zintom's Game Optimizer", "  Enter command to execute:", true);
                         MenuManager.Reset();
 

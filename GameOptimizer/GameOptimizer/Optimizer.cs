@@ -41,7 +41,7 @@ namespace Zintom.GameOptimizer
     [Flags]
     public enum ProcessAffinities : long
     {
-        None = 0,
+        None = 0L,
         CPU_0 = 1L << 0,
         CPU_1 = 1L << 1,
         CPU_2 = 1L << 2,

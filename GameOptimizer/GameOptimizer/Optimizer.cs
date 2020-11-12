@@ -39,40 +39,73 @@ namespace Zintom.GameOptimizer
     /// Maps <see cref="Process.ProcessorAffinity"/> to enum values.
     /// </summary>
     [Flags]
-    public enum ProcessAffinities
+    public enum ProcessAffinities : long
     {
         None = 0,
-        CPU_0 = 1,
-        CPU_1 = 2,
-        CPU_2 = 4,
-        CPU_3 = 8,
-        CPU_4 = 16,
-        CPU_5 = 32,
-        CPU_6 = 64,
-        CPU_7 = 128,
-        CPU_8 = 256,
-        CPU_9 = 512,
-        CPU_10 = 1_024,
-        CPU_11 = 2_048,
-        CPU_12 = 4_096,
-        CPU_13 = 8_192,
-        CPU_14 = 16_384,
-        CPU_15 = 32_768,
-        CPU_16 = 65_536,
-        CPU_17 = 131_072,
-        CPU_18 = 262_144,
-        CPU_19 = 524_288,
-        CPU_20 = 1_048_576,
-        CPU_21 = 2_097_152,
-        CPU_22 = 4_194_304,
-        CPU_23 = 8_388_608,
-        CPU_24 = 16_777_216,
-        CPU_25 = 33_554_432,
-        CPU_26 = 67_108_864,
-        CPU_27 = 134_217_728,
-        CPU_28 = 268_435_456,
-        CPU_29 = 536_870_912,
-        CPU_30 = 1_073_741_824,
+        CPU_0 = 1L << 0,
+        CPU_1 = 1L << 1,
+        CPU_2 = 1L << 2,
+        CPU_3 = 1L << 3,
+        CPU_4 = 1L << 4,
+        CPU_5 = 1L << 5,
+        CPU_6 = 1L << 6,
+        CPU_7 = 1L << 7,
+        CPU_8 = 1L << 8,
+        CPU_9 = 1L << 9,
+        CPU_10 = 1L << 10,
+        CPU_11 = 1L << 11,
+        CPU_12 = 1L << 12,
+        CPU_13 = 1L << 13,
+        CPU_14 = 1L << 14,
+        CPU_15 = 1L << 15,
+        CPU_16 = 1L << 16,
+        CPU_17 = 1L << 17,
+        CPU_18 = 1L << 18,
+        CPU_19 = 1L << 19,
+        CPU_20 = 1L << 20,
+        CPU_21 = 1L << 21,
+        CPU_22 = 1L << 22,
+        CPU_23 = 1L << 23,
+        CPU_24 = 1L << 24,
+        CPU_25 = 1L << 25,
+        CPU_26 = 1L << 26,
+        CPU_27 = 1L << 27,
+        CPU_28 = 1L << 28,
+        CPU_29 = 1L << 29,
+        CPU_30 = 1L << 30,
+        CPU_31 = 1L << 31,
+        CPU_32 = 1L << 32,
+        CPU_33 = 1L << 33,
+        CPU_34 = 1L << 34,
+        CPU_35 = 1L << 35,
+        CPU_36 = 1L << 36,
+        CPU_37 = 1L << 37,
+        CPU_38 = 1L << 38,
+        CPU_39 = 1L << 39,
+        CPU_40 = 1L << 40,
+        CPU_41 = 1L << 41,
+        CPU_42 = 1L << 42,
+        CPU_43 = 1L << 43,
+        CPU_44 = 1L << 44,
+        CPU_45 = 1L << 45,
+        CPU_46 = 1L << 46,
+        CPU_47 = 1L << 47,
+        CPU_48 = 1L << 48,
+        CPU_49 = 1L << 49,
+        CPU_50 = 1L << 50,
+        CPU_51 = 1L << 51,
+        CPU_52 = 1L << 52,
+        CPU_53 = 1L << 53,
+        CPU_54 = 1L << 54,
+        CPU_55 = 1L << 55,
+        CPU_56 = 1L << 56,
+        CPU_57 = 1L << 57,
+        CPU_58 = 1L << 58,
+        CPU_59 = 1L << 59,
+        CPU_60 = 1L << 60,
+        CPU_61 = 1L << 61,
+        CPU_62 = 1L << 62,
+        CPU_63 = 1L << 63
     }
 
     /// <summary>
@@ -156,7 +189,7 @@ namespace Zintom.GameOptimizer
             }
 
             /// <summary>
-            /// Generates the HashCode for this <see cref="ProcessStateChange"/>,
+            /// Generates the HashCode for this <see cref="ProcessStateChange"/>.
             /// </summary>
             public override int GetHashCode()
             {
@@ -186,7 +219,7 @@ namespace Zintom.GameOptimizer
         private OptimizeConditions _flagsUsedForOptimize = OptimizeConditions.None;
 
         private readonly int _optimizeAffinityMinimumCores = 4;
-        private readonly int _affinityAllCores = 0.SetBitRange(0, Environment.ProcessorCount);
+        private readonly nint _affinityAllCores = BitMask.SetBitRange(0, 0, Environment.ProcessorCount);
 
         /// <summary>
         /// <b>true</b> if optimization has been run. Returns to <b>false</b> when <see cref="Restore"/> is ran.
@@ -268,7 +301,7 @@ namespace Zintom.GameOptimizer
                     if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount >= _optimizeAffinityMinimumCores)
                     {
                         // Set the affinity to the last 2 cores.
-                        int newAffinity = 0.SetBitRange(Environment.ProcessorCount - 2, Environment.ProcessorCount);
+                        nint newAffinity = BitMask.SetBitRange(0, Environment.ProcessorCount - 2, Environment.ProcessorCount);
 
                         ChangeAffinity(process, (ProcessAffinities)newAffinity);
                     }
@@ -357,10 +390,10 @@ namespace Zintom.GameOptimizer
         {
             if (affinity == null) return "null";
 
-            if ((int)affinity == _affinityAllCores)
+            if (affinity == _affinityAllCores)
                 return "All cores";
             else
-                return ((ProcessAffinities)(int)affinity).ToString();
+                return ((ProcessAffinities)affinity).ToString();
         }
 
         void ChangeAffinity(Process process, ProcessAffinities affinity)

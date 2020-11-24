@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Reflection.Metadata.Ecma335;
 using Zintom.GameOptimizer.Helpers;
-using Zintom.StorageFacility;
 using Zintom.InteractiveShell;
+using Zintom.StorageFacility;
 
 namespace Zintom.GameOptimizer
 {
@@ -49,7 +47,7 @@ namespace Zintom.GameOptimizer
         {
             AppName = "Zintom's Game Optimizer - " + GetVersionInformation();
 
-            if(args.Length > 0 && args[0] == "-melody!")
+            if (args.Length > 0 && args[0] == "-melody!")
             {
                 AppName = "Zintom's Melody Fluffer!";
             }
@@ -67,10 +65,10 @@ namespace Zintom.GameOptimizer
             {
                 string command = "";
                 _interactiveShell.DrawTitle(AppName, optimizer.IsOptimized ? "  Currently optimized, use 'Restore' or the command 'res' to de-optimize.\n  Some menu options are unavailable because of this." : "  Main Menu", _shellTitleDisplayOptions, true);
-                int menuResult = _interactiveShell.DisplayMenu(new string[] { optimizer.IsOptimized ? "Unavailable" : "Quick Options", 
-                                                                       optimizer.IsOptimized ? "Unavailable" : "Command Input", 
+                int menuResult = _interactiveShell.DisplayMenu(new string[] { optimizer.IsOptimized ? "Unavailable" : "Quick Options",
+                                                                       optimizer.IsOptimized ? "Unavailable" : "Command Input",
                                                                        "Restore",
-                                                                       "Help", 
+                                                                       "Help",
                                                                        "Exit" }, _shellDisplayOptions);
                 switch (menuResult)
                 {
@@ -157,17 +155,18 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command == "help")
                 {
-                    _interactiveShell.DrawTitle(AppName, 
-                        "  Help", "  opt         | Optimizes games by isolating cores and adjusting low priorities." + 
-                                "\n  res         | Restores all processes back to normal." + 
-                                "\n  edit        | Allows you to edit the priorty process list." + 
-                                "\n  audio       | Launches SndVol.exe -f allowing you to change the computers master volume." + 
-                                "\n  audio mixer | Launches SndVol.exe -m opening the volume mixer." +
-                                "\n", _shellTitleDisplayOptions, true);
+                    helpScreen:
+                    _interactiveShell.DrawTitle(AppName,
+                        "  Help", "  opt         | Optimizes games by isolating cores and adjusting low priorities." +
+                                "\n  res         | Restores all processes back to normal." +
+                                "\n  edit        | Allows you to edit the priorty process list." +
+                                "\n  audio       | Launches SndVol.exe -f allowing you to change the computers master volume." +
+                                "\n  audio mixer | Launches SndVol.exe -m opening the volume mixer."
+                                , _shellTitleDisplayOptions, true);
                     int result = _interactiveShell.DisplayMenu(new string[] { "Open README.txt", "Open LICENSE.txt", "Back" }, _shellDisplayOptions);
 
-                    if (result == 0) Process.Start("notepad.exe" , "README.txt");
-                    if (result == 1) Process.Start("notepad.exe", "LICENSE.txt");
+                    if (result == 0) { Process.Start("notepad.exe", "README.txt"); goto helpScreen; }
+                    if (result == 1) { Process.Start("notepad.exe", "LICENSE.txt"); goto helpScreen; }
                     continue;
                 }
                 else if (command == "exit")

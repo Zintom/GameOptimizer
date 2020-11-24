@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Zintom.GameOptimizer.Helpers;
+using Zintom.GameOptimizer.Menus;
 using Zintom.InteractiveShell;
 using Zintom.StorageFacility;
 
@@ -12,7 +13,7 @@ namespace Zintom.GameOptimizer
     partial class Program
     {
 
-        private static string AppName = "Zintom's Game Optimizer";
+        public static string AppName = "Zintom's Game Optimizer";
         const string WhitelistFile = "process_whitelist.txt";
         const string FileComment = "##";
 
@@ -58,17 +59,20 @@ namespace Zintom.GameOptimizer
                     case 0:
                         if (optimizer.IsOptimized) continue;
 
-                        _gui.DrawTitle(AppName, "Select a quick option to execute", null, true);
-                        string[] quickCommands = new string[] { "1: Default optimization",
-                            "2: Default optimization plus Affinity optimization",
-                            "3: Boost whitelisted processes and de-prioritise everything else.",
-                            "4: Just boost whitelisted processes without touching other processes",
-                            "Back"};
-                        int quickResult = _gui.DisplayMenu(quickCommands);
-                        if (quickResult == -1 || quickResult == 4) // If escape or back pressed.
-                            continue;
+                        IConsoleMenu quickOptionsMenu = new QuickOptionsMenu();
+                        quickOptionsMenu.Run(_gui);
 
-                        command = quickResult.ToString();
+                        //_gui.DrawTitle(AppName, "Select a quick option to execute", null, true);
+                        //string[] quickCommands = new string[] { "1: Default optimization",
+                        //    "2: Default optimization plus Affinity optimization",
+                        //    "3: Boost whitelisted processes and de-prioritise everything else.",
+                        //    "4: Just boost whitelisted processes without touching other processes",
+                        //    "Back"};
+                        //int quickResult = _gui.DisplayMenu(quickCommands);
+                        //if (quickResult == -1 || quickResult == 4) // If escape or back pressed.
+                        //    continue;
+
+                        //command = quickResult.ToString();
 
                         Console.Clear();
                         break;
@@ -157,22 +161,22 @@ namespace Zintom.GameOptimizer
                     Console.Clear();
                     Environment.Exit(0);
                 }
-                else if (command == "0")
-                {
-                    Command_OptimizeWithFlags(OptimizeConditions.None);
-                }
-                else if (command == "1")
-                {
-                    Command_OptimizeWithFlags(OptimizeConditions.OptimizeAffinity);
-                }
-                else if (command == "2")
-                {
-                    Command_OptimizeWithFlags(OptimizeConditions.BoostPriorities);
-                }
-                else if (command == "3")
-                {
-                    Command_OptimizeWithFlags(OptimizeConditions.BoostPriorities | OptimizeConditions.IgnoreOrdinaryProcesses);
-                }
+                //else if (command == "0")
+                //{
+                //    Command_OptimizeWithFlags(OptimizeConditions.None);
+                //}
+                //else if (command == "1")
+                //{
+                //    Command_OptimizeWithFlags(OptimizeConditions.OptimizeAffinity);
+                //}
+                //else if (command == "2")
+                //{
+                //    Command_OptimizeWithFlags(OptimizeConditions.BoostPriorities);
+                //}
+                //else if (command == "3")
+                //{
+                //    Command_OptimizeWithFlags(OptimizeConditions.BoostPriorities | OptimizeConditions.IgnoreOrdinaryProcesses);
+                //}
             }
         }
 

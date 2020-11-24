@@ -9,7 +9,7 @@ namespace Zintom.GameOptimizer
         private const string Text_PressAnyKeyToGoBack = "Press any key to go back.";
         private const string Text_Optimized = "\nOptimized.";
 
-        static void Command_OptimizeWithFlags(OptimizeConditions flags)
+        public static void Command_OptimizeWithFlags(OptimizeConditions flags)
         {
             _gui.DrawTitle(AppName, $"Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", null, true);
             Thread.Sleep(_optimizeWaitTimeMillis);
@@ -27,7 +27,7 @@ namespace Zintom.GameOptimizer
             _gui.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }
 
-        static void Command_Restore()
+        public static void Command_Restore()
         {
             _gui.DrawTitle(AppName, "Restoring", null, true);
 
@@ -36,7 +36,7 @@ namespace Zintom.GameOptimizer
             _gui.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }
 
-        static void Command_ForceRestore()
+        public static void Command_ForceRestore()
         {
             _gui.DrawTitle(AppName, "Force restoring process priorities to Normal.", null, true);
 

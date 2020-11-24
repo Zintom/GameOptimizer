@@ -25,22 +25,23 @@ namespace Zintom.GameOptimizer
         private static Storage _settings = default!;
 
         private static InteractiveShell.InteractiveShell _interactiveShell = default!;
-        private static ShellDisplayOptions _shellDisplayOptions = default!;
-        private static ShellTitleDisplayOptions _shellTitleDisplayOptions = default!;
 
         private static void SetupInteractiveShell()
         {
             _interactiveShell = new InteractiveShell.InteractiveShell();
 
-            _shellDisplayOptions = new ShellDisplayOptions()
-            {
-                LeftOffset = 4
-            };
-
-            _shellTitleDisplayOptions = new ShellTitleDisplayOptions()
+            var _shellDisplayOptions = new ShellDisplayOptions()
             {
                 LeftOffset = 2
             };
+
+            var _shellTitleDisplayOptions = new ShellTitleDisplayOptions()
+            {
+                LeftOffset = 2
+            };
+
+            _interactiveShell.FallbackDisplayOptions = _shellDisplayOptions;
+            _interactiveShell.FallbackTitleDisplayOptions = _shellTitleDisplayOptions;
         }
 
         static void Main(string[] args)
@@ -64,24 +65,24 @@ namespace Zintom.GameOptimizer
             while (true)
             {
                 string command = "";
-                _interactiveShell.DrawTitle(AppName, optimizer.IsOptimized ? "  Currently optimized, use 'Restore' or the command 'res' to de-optimize.\n  Some menu options are unavailable because of this." : "  Main Menu", _shellTitleDisplayOptions, true);
+                _interactiveShell.DrawTitle(AppName, optimizer.IsOptimized ? "Currently optimized, use 'Restore' or the command 'res' to de-optimize.\nSome menu options are unavailable because of this." : "Main Menu", null, true);
                 int menuResult = _interactiveShell.DisplayMenu(new string[] { optimizer.IsOptimized ? "Unavailable" : "Quick Options",
                                                                        optimizer.IsOptimized ? "Unavailable" : "Command Input",
                                                                        "Restore",
                                                                        "Help",
-                                                                       "Exit" }, _shellDisplayOptions);
+                                                                       "Exit" });
                 switch (menuResult)
                 {
                     case 0:
                         if (optimizer.IsOptimized) continue;
 
-                        _interactiveShell.DrawTitle(AppName, "  Select a quick option to execute", _shellTitleDisplayOptions, true);
+                        _interactiveShell.DrawTitle(AppName, "Select a quick option to execute", null, true);
                         string[] quickCommands = new string[] { "1: Default optimization",
                             "2: Default optimization plus Affinity optimization",
                             "3: Boost whitelisted processes and de-prioritise everything else.",
                             "4: Just boost whitelisted processes without touching other processes",
                             "Back"};
-                        int quickResult = _interactiveShell.DisplayMenu(quickCommands, _shellDisplayOptions);
+                        int quickResult = _interactiveShell.DisplayMenu(quickCommands);
                         if (quickResult == -1 || quickResult == 4) // If escape or back pressed.
                             continue;
 
@@ -157,13 +158,13 @@ namespace Zintom.GameOptimizer
                 {
                     helpScreen:
                     _interactiveShell.DrawTitle(AppName,
-                        "  Help", "  opt         | Optimizes games by isolating cores and adjusting low priorities." +
-                                "\n  res         | Restores all processes back to normal." +
-                                "\n  edit        | Allows you to edit the priorty process list." +
-                                "\n  audio       | Launches SndVol.exe -f allowing you to change the computers master volume." +
-                                "\n  audio mixer | Launches SndVol.exe -m opening the volume mixer."
-                                , _shellTitleDisplayOptions, true);
-                    int result = _interactiveShell.DisplayMenu(new string[] { "Open README.txt", "Open LICENSE.txt", "Back" }, _shellDisplayOptions);
+                        "Help", "opt         | Optimizes games by isolating cores and adjusting low priorities." +
+                                "\nres         | Restores all processes back to normal." +
+                                "\nedit        | Allows you to edit the priorty process list." +
+                                "\naudio       | Launches SndVol.exe -f allowing you to change the computers master volume." +
+                                "\naudio mixer | Launches SndVol.exe -m opening the volume mixer."
+                                , null, true);
+                    int result = _interactiveShell.DisplayMenu(new string[] { "Open README.txt", "Open LICENSE.txt", "Back" });
 
                     if (result == 0) { Process.Start("notepad.exe", "README.txt"); goto helpScreen; }
                     if (result == 1) { Process.Start("notepad.exe", "LICENSE.txt"); goto helpScreen; }

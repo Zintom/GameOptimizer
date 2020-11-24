@@ -6,36 +6,33 @@ namespace Zintom.GameOptimizer
 {
     partial class Program
     {
-        private const string Text_PressAnyKeyToGoBack = "  Press any key to go back.";
-        private const string Text_Optimized = "\n  Optimized.";
+        private const string Text_PressAnyKeyToGoBack = "Press any key to go back.";
+        private const string Text_Optimized = "\nOptimized.";
 
         static void Command_OptimizeNoFlags()
         {
-            _interactiveShell.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", _shellTitleDisplayOptions, true);
+            _interactiveShell.DrawTitle(AppName, $"Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", null, true);
             Thread.Sleep(_optimizeWaitTimeMillis);
             optimizer.Optimize();
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(Text_Optimized);
+            _interactiveShell.DrawSubtitleText(Text_Optimized);
 
             Thread.Sleep(1500);
             NativeMethods.MinimizeConsoleWindow();
 
-            Console.Write(Text_PressAnyKeyToGoBack); Console.ReadKey();
+            _interactiveShell.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }
 
         static void Command_OptimizeWithFlags(OptimizeConditions flags)
         {
-            _interactiveShell.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", _shellTitleDisplayOptions, true);
+            _interactiveShell.DrawTitle(AppName, $"Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", null, true);
             Thread.Sleep(_optimizeWaitTimeMillis);
 
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine($"  Optimizing (Flags: {flags})...");
+            _interactiveShell.DrawContentText($"Optimizing (Flags: {flags})...");
 
             optimizer.Optimize(flags);
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(Text_Optimized);
+            _interactiveShell.DrawSubtitleText(Text_Optimized);
 
             if (!flags.HasFlag(OptimizeConditions.NoHide))
             {
@@ -43,33 +40,29 @@ namespace Zintom.GameOptimizer
                 NativeMethods.MinimizeConsoleWindow();
             }
 
-            Console.Write(Text_PressAnyKeyToGoBack); Console.ReadKey();
+            _interactiveShell.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }
 
         static void Command_Restore()
         {
-            Console.ForegroundColor = ConsoleColor.Gray;
-            _interactiveShell.DrawTitle(AppName, "  Restoring", _shellTitleDisplayOptions, true);
+            _interactiveShell.DrawTitle(AppName, "Restoring", null, true);
 
             optimizer.Restore();
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n  Restored.");
+            _interactiveShell.DrawSubtitleText("\nRestored.");
 
-            Console.Write(Text_PressAnyKeyToGoBack); Console.ReadKey();
+            _interactiveShell.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }
 
         static void Command_ForceRestore()
         {
-            Console.ForegroundColor = ConsoleColor.Gray;
-            _interactiveShell.DrawTitle(AppName, "  Force restoring process priorities to Normal.", _shellTitleDisplayOptions, true);
+            _interactiveShell.DrawTitle(AppName, "Force restoring process priorities to Normal.", null, true);
 
             optimizer.ForceRestoreToNormal();
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n  Restored.");
+            _interactiveShell.DrawSubtitleText("\nRestored.");
 
-            Console.Write(Text_PressAnyKeyToGoBack); Console.ReadKey();
+            _interactiveShell.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }
 
     }

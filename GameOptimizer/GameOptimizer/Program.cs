@@ -6,7 +6,7 @@ using System.IO;
 using System.Reflection.Metadata.Ecma335;
 using Zintom.GameOptimizer.Helpers;
 using Zintom.StorageFacility;
-using ZintomShellHelper;
+using Zintom.InteractiveShell;
 
 namespace Zintom.GameOptimizer
 {
@@ -26,6 +26,25 @@ namespace Zintom.GameOptimizer
         private static Optimizer optimizer = default!;
         private static Storage _settings = default!;
 
+        private static InteractiveShell.InteractiveShell _interactiveShell = default!;
+        private static ShellDisplayOptions _shellDisplayOptions = default!;
+        private static ShellTitleDisplayOptions _shellTitleDisplayOptions = default!;
+
+        private static void SetupInteractiveShell()
+        {
+            _interactiveShell = new InteractiveShell.InteractiveShell();
+
+            _shellDisplayOptions = new ShellDisplayOptions()
+            {
+                LeftOffset = 4
+            };
+
+            _shellTitleDisplayOptions = new ShellTitleDisplayOptions()
+            {
+                LeftOffset = 2
+            };
+        }
+
         static void Main(string[] args)
         {
             AppName = "Zintom's Game Optimizer - " + GetVersionInformation();
@@ -35,37 +54,37 @@ namespace Zintom.GameOptimizer
                 AppName = "Zintom's Melody Fluffer!";
             }
 
-            MenuManager.Init();
             Console.Title = AppName;
             _defaultBackColor = Console.BackgroundColor;
             _defaultForeColor = Console.ForegroundColor;
 
             LoadSettings();
+            SetupInteractiveShell();
 
             optimizer = new Optimizer(GetWhitelistedProcessNames(), new CLIOutputDisplayer());
 
             while (true)
             {
                 string command = "";
-                MenuManager.DrawTitle(AppName, optimizer.IsOptimized ? "  Currently optimized, use 'Restore' or the command 'res' to de-optimize.\n  Some menu options are unavailable because of this." : "  Main Menu", true);
-                int menuResult = MenuManager.CreateMenu(new string[] { optimizer.IsOptimized ? "Unavailable" : "Quick Options", 
+                _interactiveShell.DrawTitle(AppName, optimizer.IsOptimized ? "  Currently optimized, use 'Restore' or the command 'res' to de-optimize.\n  Some menu options are unavailable because of this." : "  Main Menu", _shellTitleDisplayOptions, true);
+                int menuResult = _interactiveShell.DisplayMenu(new string[] { optimizer.IsOptimized ? "Unavailable" : "Quick Options", 
                                                                        optimizer.IsOptimized ? "Unavailable" : "Command Input", 
                                                                        "Restore",
                                                                        "Help", 
-                                                                       "Exit" }, false, 2);
+                                                                       "Exit" }, _shellDisplayOptions);
                 switch (menuResult)
                 {
                     case 0:
                         if (optimizer.IsOptimized) continue;
 
-                        MenuManager.DrawTitle(AppName, "  Select a quick option to execute", true);
+                        _interactiveShell.DrawTitle(AppName, "  Select a quick option to execute", _shellTitleDisplayOptions, true);
                         string[] quickCommands = new string[] { "1: Default optimization",
                             "2: Default optimization plus Affinity optimization",
                             "3: Boost whitelisted processes and de-prioritise everything else.",
                             "4: Just boost whitelisted processes without touching other processes",
                             "Back"};
-                        int quickResult = MenuManager.CreateMenu(quickCommands, false, 2);
-                        if (quickResult == MenuManager.ESCAPE_KEY || quickResult == 4) // If escape or back pressed.
+                        int quickResult = _interactiveShell.DisplayMenu(quickCommands, _shellDisplayOptions);
+                        if (quickResult == -1 || quickResult == 4) // If escape or back pressed.
                             continue;
 
                         command = quickResult.ToString();
@@ -75,8 +94,14 @@ namespace Zintom.GameOptimizer
                     case 1:
                         if (optimizer.IsOptimized) continue;
 
-                        MenuManager.DrawTitle(AppName, "  Enter command to execute:", true);
-                        MenuManager.Reset();
+                        ShellTitleDisplayOptions titleDispOptions = new ShellTitleDisplayOptions()
+                        {
+                            LeftOffset = 2,
+                            SubtitleVerticalPadding = 0
+                        };
+
+                        _interactiveShell.DrawTitle(AppName, "Enter command to execute:", titleDispOptions, true);
+                        _interactiveShell.Reset();
 
                         Console.Write("  >");
                         command = Console.ReadLine() ?? "";
@@ -132,14 +157,14 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command == "help")
                 {
-                    MenuManager.DrawTitle(AppName, 
+                    _interactiveShell.DrawTitle(AppName, 
                         "  Help", "  opt         | Optimizes games by isolating cores and adjusting low priorities." + 
                                 "\n  res         | Restores all processes back to normal." + 
                                 "\n  edit        | Allows you to edit the priorty process list." + 
                                 "\n  audio       | Launches SndVol.exe -f allowing you to change the computers master volume." + 
                                 "\n  audio mixer | Launches SndVol.exe -m opening the volume mixer." +
-                                "\n", true);
-                    int result = MenuManager.CreateMenu(new string[] { "Open README.txt", "Open LICENSE.txt", "Back" }, false, 2);
+                                "\n", _shellTitleDisplayOptions, true);
+                    int result = _interactiveShell.DisplayMenu(new string[] { "Open README.txt", "Open LICENSE.txt", "Back" }, _shellDisplayOptions);
 
                     if (result == 0) Process.Start("notepad.exe" , "README.txt");
                     if (result == 1) Process.Start("notepad.exe", "LICENSE.txt");

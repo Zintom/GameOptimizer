@@ -27,14 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StorageFacility" Version="1.3.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="ZintomShellHelper">
-      <HintPath>..\..\External Libs\ZintomShellHelper.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
+    <PackageReference Include="InteractiveShell" Version="2.1.0" />
+    <PackageReference Include="StorageFacility" Version="1.3.4" />
   </ItemGroup>
 
   <ItemGroup>

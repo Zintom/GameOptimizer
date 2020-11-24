@@ -24,11 +24,11 @@ namespace Zintom.GameOptimizer
         private static Optimizer optimizer = default!;
         private static Storage _settings = default!;
 
-        private static InteractiveShell.InteractiveShell _interactiveShell = default!;
+        private static InteractiveShell.InteractiveShell _gui = default!;
 
         private static void SetupInteractiveShell()
         {
-            _interactiveShell = new InteractiveShell.InteractiveShell();
+            _gui = new InteractiveShell.InteractiveShell();
 
             var _shellDisplayOptions = new ShellDisplayOptions()
             {
@@ -40,8 +40,8 @@ namespace Zintom.GameOptimizer
                 LeftOffset = 2
             };
 
-            _interactiveShell.FallbackDisplayOptions = _shellDisplayOptions;
-            _interactiveShell.FallbackTitleDisplayOptions = _shellTitleDisplayOptions;
+            _gui.FallbackDisplayOptions = _shellDisplayOptions;
+            _gui.FallbackTitleDisplayOptions = _shellTitleDisplayOptions;
         }
 
         static void Main(string[] args)
@@ -65,8 +65,8 @@ namespace Zintom.GameOptimizer
             while (true)
             {
                 string command = "";
-                _interactiveShell.DrawTitle(AppName, optimizer.IsOptimized ? "Currently optimized, use 'Restore' or the command 'res' to de-optimize.\nSome menu options are unavailable because of this." : "Main Menu", null, true);
-                int menuResult = _interactiveShell.DisplayMenu(new string[] { optimizer.IsOptimized ? "Unavailable" : "Quick Options",
+                _gui.DrawTitle(AppName, optimizer.IsOptimized ? "Currently optimized, use 'Restore' or the command 'res' to de-optimize.\nSome menu options are unavailable because of this." : "Main Menu", null, true);
+                int menuResult = _gui.DisplayMenu(new string[] { optimizer.IsOptimized ? "Unavailable" : "Quick Options",
                                                                        optimizer.IsOptimized ? "Unavailable" : "Command Input",
                                                                        "Restore",
                                                                        "Help",
@@ -76,13 +76,13 @@ namespace Zintom.GameOptimizer
                     case 0:
                         if (optimizer.IsOptimized) continue;
 
-                        _interactiveShell.DrawTitle(AppName, "Select a quick option to execute", null, true);
+                        _gui.DrawTitle(AppName, "Select a quick option to execute", null, true);
                         string[] quickCommands = new string[] { "1: Default optimization",
                             "2: Default optimization plus Affinity optimization",
                             "3: Boost whitelisted processes and de-prioritise everything else.",
                             "4: Just boost whitelisted processes without touching other processes",
                             "Back"};
-                        int quickResult = _interactiveShell.DisplayMenu(quickCommands);
+                        int quickResult = _gui.DisplayMenu(quickCommands);
                         if (quickResult == -1 || quickResult == 4) // If escape or back pressed.
                             continue;
 
@@ -99,8 +99,8 @@ namespace Zintom.GameOptimizer
                             SubtitleVerticalPadding = 0
                         };
 
-                        _interactiveShell.DrawTitle(AppName, "Enter command to execute:", titleDispOptions, true);
-                        _interactiveShell.Reset();
+                        _gui.DrawTitle(AppName, "Enter command to execute:", titleDispOptions, true);
+                        _gui.Reset();
 
                         Console.Write("  >");
                         command = Console.ReadLine() ?? "";
@@ -124,7 +124,7 @@ namespace Zintom.GameOptimizer
 
                 if (command == "opt")
                 {
-                    Command_OptimizeNoFlags();
+                    Command_OptimizeWithFlags(OptimizeConditions.None);
                 }
                 else if (command.StartsWith("opt "))
                 {
@@ -157,14 +157,14 @@ namespace Zintom.GameOptimizer
                 else if (command == "help")
                 {
                     helpScreen:
-                    _interactiveShell.DrawTitle(AppName,
+                    _gui.DrawTitle(AppName,
                         "Help", "opt         | Optimizes games by isolating cores and adjusting low priorities." +
                                 "\nres         | Restores all processes back to normal." +
                                 "\nedit        | Allows you to edit the priorty process list." +
                                 "\naudio       | Launches SndVol.exe -f allowing you to change the computers master volume." +
                                 "\naudio mixer | Launches SndVol.exe -m opening the volume mixer."
                                 , null, true);
-                    int result = _interactiveShell.DisplayMenu(new string[] { "Open README.txt", "Open LICENSE.txt", "Back" });
+                    int result = _gui.DisplayMenu(new string[] { "Open README.txt", "Open LICENSE.txt", "Back" });
 
                     if (result == 0) { Process.Start("notepad.exe", "README.txt"); goto helpScreen; }
                     if (result == 1) { Process.Start("notepad.exe", "LICENSE.txt"); goto helpScreen; }
@@ -177,7 +177,7 @@ namespace Zintom.GameOptimizer
                 }
                 else if (command == "0")
                 {
-                    Command_OptimizeNoFlags();
+                    Command_OptimizeWithFlags(OptimizeConditions.None);
                 }
                 else if (command == "1")
                 {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using Zintom.GameOptimizer.Helpers;
-using ZintomShellHelper;
 
 namespace Zintom.GameOptimizer
 {
@@ -12,7 +11,7 @@ namespace Zintom.GameOptimizer
 
         static void Command_OptimizeNoFlags()
         {
-            MenuManager.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", true);
+            _interactiveShell.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", _shellTitleDisplayOptions, true);
             Thread.Sleep(_optimizeWaitTimeMillis);
             optimizer.Optimize();
 
@@ -27,7 +26,7 @@ namespace Zintom.GameOptimizer
 
         static void Command_OptimizeWithFlags(OptimizeConditions flags)
         {
-            MenuManager.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", true);
+            _interactiveShell.DrawTitle(AppName, $"  Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", _shellTitleDisplayOptions, true);
             Thread.Sleep(_optimizeWaitTimeMillis);
 
             Console.ForegroundColor = ConsoleColor.Gray;
@@ -50,7 +49,7 @@ namespace Zintom.GameOptimizer
         static void Command_Restore()
         {
             Console.ForegroundColor = ConsoleColor.Gray;
-            MenuManager.DrawTitle(AppName, "  Restoring", true);
+            _interactiveShell.DrawTitle(AppName, "  Restoring", _shellTitleDisplayOptions, true);
 
             optimizer.Restore();
 
@@ -63,7 +62,7 @@ namespace Zintom.GameOptimizer
         static void Command_ForceRestore()
         {
             Console.ForegroundColor = ConsoleColor.Gray;
-            MenuManager.DrawTitle(AppName, "  Force restoring process priorities to Normal.", true);
+            _interactiveShell.DrawTitle(AppName, "  Force restoring process priorities to Normal.", _shellTitleDisplayOptions, true);
 
             optimizer.ForceRestoreToNormal();
 

@@ -26,24 +26,6 @@ namespace Zintom.GameOptimizer
 
         private static InteractiveShell.InteractiveShell _gui = default!;
 
-        private static void SetupInteractiveShell()
-        {
-            _gui = new InteractiveShell.InteractiveShell();
-
-            var _shellDisplayOptions = new ShellDisplayOptions()
-            {
-                LeftOffset = 2
-            };
-
-            var _shellTitleDisplayOptions = new ShellTitleDisplayOptions()
-            {
-                LeftOffset = 2
-            };
-
-            _gui.FallbackDisplayOptions = _shellDisplayOptions;
-            _gui.FallbackTitleDisplayOptions = _shellTitleDisplayOptions;
-        }
-
         static void Main(string[] args)
         {
             AppName = "Zintom's Game Optimizer - " + GetVersionInformation();
@@ -199,6 +181,24 @@ namespace Zintom.GameOptimizer
             Console.WriteLine("Loading settings information..");
 
             _settings = Storage.GetStorage("settings.dat");
+        }
+
+        private static void SetupInteractiveShell()
+        {
+            _gui = new InteractiveShell.InteractiveShell();
+
+            var _shellDisplayOptions = new ShellDisplayOptions()
+            {
+                LeftOffset = 2
+            };
+
+            var _shellTitleDisplayOptions = new ShellTitleDisplayOptions()
+            {
+                LeftOffset = 2
+            };
+
+            _gui.FallbackDisplayOptions = _shellDisplayOptions;
+            _gui.FallbackTitleDisplayOptions = _shellTitleDisplayOptions;
         }
 
         /// <summary>

@@ -6,16 +6,16 @@
     <RootNamespace>Zintom.GameOptimizer</RootNamespace>
     <Nullable>enable</Nullable>
     <NeutralLanguage>en</NeutralLanguage>
-    <Version>1.2.3</Version>
-    <AssemblyVersion>1.2.3</AssemblyVersion>
-    <FileVersion>1.2.3.0</FileVersion>
+    <Version>1.3</Version>
+    <AssemblyVersion>1.3.0</AssemblyVersion>
+    <FileVersion>1.3.0.0</FileVersion>
     <Authors>Tom Zsinko</Authors>
     <Company>Zintom</Company>
     <Description>Zintoms Game Optimizer boosts gaming performance by limiting the 'priority' of other processes and optionally limiting how many CPU cores they have access to (processor 'Affinity').</Description>
     <PackageTags>game-booster boost performance performance-tuning</PackageTags>
     <PackageId>ZintomsGameOptimizer</PackageId>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <PackageReleaseNotes>You can now restore state even after closing and reopening the application.</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

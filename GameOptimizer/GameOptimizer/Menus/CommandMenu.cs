@@ -54,6 +54,10 @@ namespace Zintom.GameOptimizer.Menus
                 case "opt":
                     Program.Command_OptimizeWithFlags(OptimizeConditions.None);
                     break;
+                case "options":
+                    IConsoleMenu optionsMenu = new OptionsMenu();
+                    optionsMenu.Run(gui);
+                    break;
                 case "res":
                     Program.Command_Restore();
                     break;

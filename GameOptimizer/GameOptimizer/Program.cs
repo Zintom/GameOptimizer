@@ -109,7 +109,7 @@ namespace Zintom.GameOptimizer
                     sw.WriteLine(string.Format(
                         "{0} Put processes you don't want affected by the optimizer here.{1}" +
                         "{0} Apps{1}Steam{1}SteamService{1}steamwebhelper{1}GameOverlayUI{1}" +
-                        "NVDisplay.Container{1}nvsphelper64.exe{1}ffmpeg-mux64 ## OBS's encoder{1}obs64 ## Open Broadcaster{1}discord{1}{1}" +
+                        "NVDisplay.Container{1}nvsphelper64{1}ffmpeg-mux64 ## OBS's encoder{1}obs64 ## Open Broadcaster{1}discord{1}{1}" +
                         "{0} Games{1}javaw {1}Minecraft", FileComment, Environment.NewLine));
                     sw.Flush();
                     sw.Close();

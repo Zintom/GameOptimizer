@@ -2,7 +2,7 @@
 
 namespace Zintom.GameOptimizer.Menus
 {
-    public class QuickOptionsMenu : IConsoleMenu
+    public class OptimizeMenu : IConsoleMenu
     {
 
         public void Run(InteractiveShell.InteractiveShell gui)

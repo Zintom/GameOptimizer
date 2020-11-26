@@ -18,17 +18,18 @@ namespace Zintom.GameOptimizer.Menus
             while (true)
             {
                 gui.DrawTitle(Program.AppName, _optimizer.IsOptimized ? "Currently optimized, use 'Restore' or the command 'res' to de-optimize.\nSome menu options are unavailable because of this." : "Main Menu", null, true);
-                int menuResult = gui.DisplayMenu(new string[] { _optimizer.IsOptimized ? "Unavailable" : "Quick Options",
-                                                                       _optimizer.IsOptimized ? "Unavailable" : "Command Input",
+                int menuResult = gui.DisplayMenu(new string[] { _optimizer.IsOptimized ? "Unavailable" : "Optimize >",
+                                                                       _optimizer.IsOptimized ? "Unavailable" : "Command Input >",
                                                                        "Restore",
-                                                                       "Help",
+                                                                       "Options",
+                                                                       "Help >",
                                                                        "Exit" });
                 switch (menuResult)
                 {
                     case 0:
                         if (_optimizer.IsOptimized) continue;
 
-                        IConsoleMenu quickOptionsMenu = new QuickOptionsMenu();
+                        IConsoleMenu quickOptionsMenu = new OptimizeMenu();
                         quickOptionsMenu.Run(gui);
                         break;
                     case 1:
@@ -40,9 +41,12 @@ namespace Zintom.GameOptimizer.Menus
                         commandMenu.RunCommand("res", gui);
                         break;
                     case 3:
-                        commandMenu.RunCommand("help", gui);
+                        commandMenu.RunCommand("options", gui);
                         break;
                     case 4:
+                        commandMenu.RunCommand("help", gui);
+                        break;
+                    case 5:
                         commandMenu.RunCommand("exit", gui);
                         break;
                 }

@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="InteractiveShell" Version="2.2.3" />
+    <PackageReference Include="InteractiveShell" Version="2.2.5" />
     <PackageReference Include="StorageFacility" Version="1.3.5" />
   </ItemGroup>
 

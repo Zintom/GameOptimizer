@@ -7,7 +7,6 @@ namespace Zintom.GameOptimizer
     partial class Program
     {
         private const string Text_PressAnyKeyToGoBack = "Press any key to go back.";
-        private const string Text_Optimized = "\nOptimized.";
 
         public static void Command_OptimizeWithFlags(OptimizeConditions flags)
         {
@@ -16,7 +15,7 @@ namespace Zintom.GameOptimizer
 
             _gui.DrawContentText($"Optimizing (Flags: {flags})...");
 
-            _gui.DrawSubtitleText(string.Format("\nCompleted {0} optimizations.", optimizer.Optimize(flags)));
+            _gui.DrawSubtitleText(string.Format("\nCompleted {0} optimizations.", Optimizer.Optimize(flags)));
 
             if (!flags.HasFlag(OptimizeConditions.NoHide))
             {
@@ -31,7 +30,7 @@ namespace Zintom.GameOptimizer
         {
             _gui.DrawTitle(AppName, "Restoring", null, true);
 
-            _gui.DrawSubtitleText(string.Format("\nCompleted {0} restore operations.", optimizer.Restore()));
+            _gui.DrawSubtitleText(string.Format("\nCompleted {0} restore operations.", Optimizer.Restore()));
 
             _gui.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }
@@ -40,7 +39,7 @@ namespace Zintom.GameOptimizer
         {
             _gui.DrawTitle(AppName, "Force restoring process priorities to Normal.", null, true);
 
-            _gui.DrawSubtitleText(string.Format("\n{0} processes affected by the force-restore.", optimizer.ForceRestoreToNormal()));
+            _gui.DrawSubtitleText(string.Format("\n{0} processes affected by the force-restore.", Optimizer.ForceRestoreToNormal()));
 
             _gui.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }

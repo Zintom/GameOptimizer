@@ -19,6 +19,7 @@ namespace Zintom.GameOptimizer
         private static ConsoleColor _defaultBackColor;
         private static ConsoleColor _defaultForeColor;
 
+        private static readonly IOutputProvider outputDisplayer = new CLIOutputDisplayer();
         public static Optimizer Optimizer { get; private set; } = default!;
 
         private static InteractiveShell.InteractiveShell _gui = default!;
@@ -38,7 +39,7 @@ namespace Zintom.GameOptimizer
 
             SetupInteractiveShell();
 
-            Optimizer = new Optimizer(GetWhitelistedProcessNames(), new CLIOutputDisplayer());
+            Optimizer = new Optimizer(GetWhitelistedProcessNames(outputDisplayer), outputDisplayer);
 
             // Begin Main Menu application loop
             IConsoleMenu mainMenu = new MainMenu();
@@ -89,31 +90,33 @@ namespace Zintom.GameOptimizer
         /// </summary>
         static void CreateDefaultProcessWhitelistFile()
         {
-            if (!File.Exists(WhitelistFile))
+            using (var stream = File.Create(WhitelistFile))
+            using (StreamWriter sw = new StreamWriter(stream))
             {
-                using (var stream = File.Create(WhitelistFile))
-                using (StreamWriter sw = new StreamWriter(stream))
-                {
-                    sw.WriteLine(string.Format(
-                        "{0} Put processes you don't want affected by the optimizer here.{1}" +
-                        "{0} Apps{1}Steam{1}SteamService{1}steamwebhelper{1}GameOverlayUI{1}" +
-                        "NVDisplay.Container{1}nvsphelper64{1}ffmpeg-mux64 ## OBS's encoder{1}obs64 ## Open Broadcaster{1}discord{1}{1}" +
-                        "{0} Games{1}javaw {1}Minecraft", FileComment, Environment.NewLine));
-                    sw.Flush();
-                    sw.Close();
-                }
-
-                Console.WriteLine("Generated " + WhitelistFile + " as it did not exist.");
+                sw.WriteLine(string.Format(
+                    "{0} Put processes you don't want affected by the optimizer here.{1}" +
+                    "{0} Apps{1}Steam{1}SteamService{1}steamwebhelper{1}GameOverlayUI{1}" +
+                    "NVDisplay.Container{1}nvsphelper64{1}ffmpeg-mux64 ## OBS's encoder{1}obs64 ## Open Broadcaster{1}discord{1}{1}" +
+                    "{0} Games{1}javaw {1}Minecraft", FileComment, Environment.NewLine));
+                sw.Flush();
+                sw.Close();
             }
+
+            Console.WriteLine("Generated " + WhitelistFile);
         }
 
         /// <summary>
         /// Reads the <see cref="WhitelistFile"/> and returns the priority process names from within.
         /// </summary>
         /// <returns>All the priority process names in a <see cref="string"/> array.</returns>
-        static List<string> GetWhitelistedProcessNames()
+        static List<string> GetWhitelistedProcessNames(IOutputProvider outputDisplayer)
         {
-            CreateDefaultProcessWhitelistFile();
+            if (!File.Exists(WhitelistFile))
+            {
+                CreateDefaultProcessWhitelistFile();
+            }
+
+            outputDisplayer.Output(string.Format("Reading whitelist file '{0}'..", WhitelistFile));
 
             List<string> whitelistedProcessNames = new List<string>();
 
@@ -127,7 +130,7 @@ namespace Zintom.GameOptimizer
                     whitelistedProcessNames.Add(lines[i].Trim());
             }
 
-            Console.WriteLine(WhitelistFile + " loaded.");
+            outputDisplayer.Output(string.Format("'{0}' loaded.", WhitelistFile));
 
             return whitelistedProcessNames;
         }

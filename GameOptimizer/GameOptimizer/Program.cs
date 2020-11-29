@@ -46,6 +46,26 @@ namespace Zintom.GameOptimizer
             mainMenu.Run(_gui);
         }
 
+        //public static void PlayMusic()
+        //{
+        //    try
+        //    {
+        //        // Only works on windows
+        //        if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+        //        {
+        //            var assembly = Assembly.GetExecutingAssembly();
+        //            var resName = "Zintom.GameOptimizer.optimizer_background_compressed.wav";
+        //            Stream? s = assembly.GetManifestResourceStream(resName);
+        //            if (s != null)
+        //            {
+        //                SoundPlayer player = new SoundPlayer(s);
+        //                player.PlayLooping();
+        //            }
+        //        }
+        //    }
+        //    catch { }
+        //}
+
         static void SetupInteractiveShell()
         {
             _gui = new InteractiveShell.InteractiveShell();

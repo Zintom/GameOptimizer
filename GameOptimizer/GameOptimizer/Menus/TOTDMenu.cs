@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Zintom.GameOptimizer.Menus
+﻿namespace Zintom.GameOptimizer.Menus
 {
     public class TOTDMenu : IConsoleMenu
     {
-        private string[] tips = new string[] { "Tip 1", "Tip 2" };
+        private readonly string[] tips = new string[] {
+            "Make sure to add your games/apps to the whitelist file\nor they will be negatively affected by the optimizer!", 
+            "Use the 'edit' command to quickly\nopen the process whitelist file.",
+            "Use Affinity optimization for even more kick!\nSee option 2 under the 'Optimize' sub-menu.",
+            "Cannot be run in DOS mode!",
+            "If for some reason you delete the 'restore_state' file\nand are unable to restore optimizations;\neither restart your PC(recommended) or use the\n'res -force' command from the 'Command Input' screen."
+            };
 
-        ISettingsProvider _settings;
+        readonly ISettingsProvider _settings;
 
         public TOTDMenu(ISettingsProvider settingsProvider)
         {
@@ -24,7 +24,8 @@ namespace Zintom.GameOptimizer.Menus
             int selectedOption = 0;
             while (true)
             {
-                gui.DrawTitle(string.Format("Tip of the day! #{0}", _settings.TipNumber + 1), tips[_settings.TipNumber], null, true);
+                gui.DrawTitle("Tip of the day! ", string.Format("Tip #{0}", _settings.TipNumber + 1), null, true);
+                gui.DrawSubtitleText(tips[_settings.TipNumber]);
 
                 selectedOption = gui.DisplayMenu(new string[] { "Proceed to Main Menu", "Next Tip" }, null, selectedOption);
 

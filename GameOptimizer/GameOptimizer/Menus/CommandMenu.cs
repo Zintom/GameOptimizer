@@ -10,12 +10,6 @@ namespace Zintom.GameOptimizer.Menus
     /// </summary>
     public class CommandMenu : IConsoleMenu
     {
-        private readonly Optimizer _optimizer;
-
-        public CommandMenu(Optimizer optimizer)
-        {
-            _optimizer = optimizer;
-        }
 
         public void Run(InteractiveShell.InteractiveShell gui)
         {
@@ -54,10 +48,6 @@ namespace Zintom.GameOptimizer.Menus
                 case "opt":
                     Program.Command_OptimizeWithFlags(OptimizeConditions.None);
                     break;
-                case "options":
-                    IConsoleMenu optionsMenu = new OptionsMenu();
-                    optionsMenu.Run(gui);
-                    break;
                 case "res":
                     Program.Command_Restore();
                     break;
@@ -65,7 +55,7 @@ namespace Zintom.GameOptimizer.Menus
                     Program.Command_ForceRestore();
                     break;
                 case "toggle_errors":
-                    _optimizer.ShowErrorCodes = !_optimizer.ShowErrorCodes;
+                    Program.Optimizer.ShowErrorCodes = !Program.Optimizer.ShowErrorCodes;
                     break;
                 case "audio":
                     Process.Start("sndvol.exe", "-f " + NativeMethods.GetVirtualDisplaySize().Width);

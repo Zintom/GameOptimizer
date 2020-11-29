@@ -4,36 +4,43 @@ namespace Zintom.GameOptimizer.Menus
 {
     public class MainMenu : IConsoleMenu
     {
-        readonly Optimizer _optimizer;
+        public readonly OptimizeMenu optimizeMenu;
+        public readonly CommandMenu commandMenu;
+        public readonly OptionsMenu optionsMenu;
 
-        public MainMenu(Optimizer optimizer)
+        public MainMenu()
         {
-            _optimizer = optimizer;
+            optimizeMenu = new OptimizeMenu();
+            commandMenu = new CommandMenu();
+            optionsMenu = new OptionsMenu();
         }
 
         public void Run(InteractiveShell.InteractiveShell gui)
         {
-            CommandMenu commandMenu = new CommandMenu(_optimizer);
+            TOTDMenu tOTDMenu = new TOTDMenu(optionsMenu);
+            tOTDMenu.Run(gui);
+
+            int selectedOption = 0;
 
             while (true)
             {
-                gui.DrawTitle(Program.AppName, _optimizer.IsOptimized ? "Currently optimized, use 'Restore' or the command 'res' to de-optimize.\nSome menu options are unavailable because of this." : "Main Menu", null, true);
-                int menuResult = gui.DisplayMenu(new string[] { _optimizer.IsOptimized ? "Unavailable" : "Optimize >",
-                                                                       _optimizer.IsOptimized ? "Unavailable" : "Command Input >",
+                gui.DrawTitle(Program.AppName, Program.Optimizer.IsOptimized ? "Currently optimized, use 'Restore' or the command 'res' to de-optimize.\nSome menu options are unavailable because of this." : "Main Menu", null, true);
+                selectedOption = gui.DisplayMenu(new string[] { Program.Optimizer.IsOptimized ? "Unavailable" : "Optimize >",
+                                                                       Program.Optimizer.IsOptimized ? "Unavailable" : "Command Input >",
                                                                        "Restore",
-                                                                       "Options",
+                                                                       "Options >",
                                                                        "Help >",
-                                                                       "Exit" });
-                switch (menuResult)
+                                                                       "Exit" }, null, selectedOption);
+
+                switch (selectedOption)
                 {
                     case 0:
-                        if (_optimizer.IsOptimized) continue;
+                        if (Program.Optimizer.IsOptimized) continue;
 
-                        IConsoleMenu quickOptionsMenu = new OptimizeMenu();
-                        quickOptionsMenu.Run(gui);
+                        optimizeMenu.Run(gui);
                         break;
                     case 1:
-                        if (_optimizer.IsOptimized) continue;
+                        if (Program.Optimizer.IsOptimized) continue;
 
                         commandMenu.Run(gui);
                         break;
@@ -41,7 +48,7 @@ namespace Zintom.GameOptimizer.Menus
                         commandMenu.RunCommand("res", gui);
                         break;
                     case 3:
-                        commandMenu.RunCommand("options", gui);
+                        optionsMenu.Run(gui);
                         break;
                     case 4:
                         commandMenu.RunCommand("help", gui);

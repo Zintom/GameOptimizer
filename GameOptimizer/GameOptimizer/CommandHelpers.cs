@@ -7,16 +7,15 @@ namespace Zintom.GameOptimizer
     partial class Program
     {
         private const string Text_PressAnyKeyToGoBack = "Press any key to go back.";
-        private const string Text_Optimized = "\nOptimized.";
 
-        static void Command_OptimizeWithFlags(OptimizeConditions flags)
+        public static void Command_OptimizeWithFlags(OptimizeConditions flags)
         {
             _gui.DrawTitle(AppName, $"Optimizing in {_optimizeWaitTimeMillis / 1000} seconds...", null, true);
             Thread.Sleep(_optimizeWaitTimeMillis);
 
             _gui.DrawContentText($"Optimizing (Flags: {flags})...");
 
-            _gui.DrawSubtitleText(string.Format("\nCompleted {0} optimizations.", optimizer.Optimize(flags)));
+            _gui.DrawSubtitleText(string.Format("\nCompleted {0} optimizations.", Optimizer.Optimize(flags)));
 
             if (!flags.HasFlag(OptimizeConditions.NoHide))
             {
@@ -27,20 +26,20 @@ namespace Zintom.GameOptimizer
             _gui.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }
 
-        static void Command_Restore()
+        public static void Command_Restore()
         {
             _gui.DrawTitle(AppName, "Restoring", null, true);
 
-            _gui.DrawSubtitleText(string.Format("\nCompleted {0} restore operations.", optimizer.Restore()));
+            _gui.DrawSubtitleText(string.Format("\nCompleted {0} restore operations.", Optimizer.Restore()));
 
             _gui.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }
 
-        static void Command_ForceRestore()
+        public static void Command_ForceRestore()
         {
             _gui.DrawTitle(AppName, "Force restoring process priorities to Normal.", null, true);
 
-            _gui.DrawSubtitleText(string.Format("\n{0} processes affected by the force-restore.", optimizer.ForceRestoreToNormal()));
+            _gui.DrawSubtitleText(string.Format("\n{0} processes affected by the force-restore.", Optimizer.ForceRestoreToNormal()));
 
             _gui.DrawContentText(Text_PressAnyKeyToGoBack, false); Console.ReadKey();
         }

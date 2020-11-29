@@ -302,9 +302,10 @@ namespace Zintom.GameOptimizer
                             // Set the priority to AboveNormal, if successful increment the
                             // optimizationsRan by one.
                             if (ChangePriority(process, ProcessPriorityClass.AboveNormal))
+                            {
                                 optimizationsRan++;
-
-                            _outputProvider?.OutputHighlight("Prioritized '" + process.ProcessName + "' because it is a whitelisted process.");
+                                _outputProvider?.OutputHighlight("Prioritized '" + process.ProcessName + "' because it is a whitelisted process.");
+                            }
                         }
                         else
                         {

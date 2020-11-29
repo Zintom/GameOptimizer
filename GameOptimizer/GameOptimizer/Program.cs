@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using Zintom.GameOptimizer.Helpers;
 using Zintom.GameOptimizer.Menus;
 using Zintom.InteractiveShell;
-using Zintom.StorageFacility;
 
 namespace Zintom.GameOptimizer
 {
@@ -22,8 +19,7 @@ namespace Zintom.GameOptimizer
         private static ConsoleColor _defaultBackColor;
         private static ConsoleColor _defaultForeColor;
 
-        private static Optimizer optimizer = default!;
-        private static Storage _settings = default!;
+        public static Optimizer Optimizer { get; private set; } = default!;
 
         private static InteractiveShell.InteractiveShell _gui = default!;
 
@@ -40,21 +36,13 @@ namespace Zintom.GameOptimizer
             _defaultBackColor = Console.BackgroundColor;
             _defaultForeColor = Console.ForegroundColor;
 
-            LoadSettings();
             SetupInteractiveShell();
 
-            optimizer = new Optimizer(GetWhitelistedProcessNames(), new CLIOutputDisplayer());
+            Optimizer = new Optimizer(GetWhitelistedProcessNames(), new CLIOutputDisplayer());
 
             // Begin Main Menu application loop
-            IConsoleMenu mainMenu = new MainMenu(optimizer);
+            IConsoleMenu mainMenu = new MainMenu();
             mainMenu.Run(_gui);
-        }
-
-        static void LoadSettings()
-        {
-            Console.WriteLine("Loading settings information..");
-
-            _settings = Storage.GetStorage("settings.dat");
         }
 
         static void SetupInteractiveShell()

@@ -23,12 +23,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="default_process_whitelist.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\default_process_whitelist.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="InteractiveShell" Version="2.2.5" />
-    <PackageReference Include="StorageFacility" Version="1.3.5" />
+    <PackageReference Include="StorageFacility" Version="1.3.6" />
   </ItemGroup>
 
   <ItemGroup>

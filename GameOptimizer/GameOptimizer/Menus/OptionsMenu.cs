@@ -1,10 +1,12 @@
 ﻿using System;
+using System.IO;
 using Zintom.StorageFacility;
 
 namespace Zintom.GameOptimizer.Menus
 {
     public class OptionsMenu : IConsoleMenu, ISettingsProvider
     {
+        private const string SettingsFile = "opt_settings";
         public readonly Storage _settings;
 
         public bool DisplayErrors
@@ -42,7 +44,18 @@ namespace Zintom.GameOptimizer.Menus
         public OptionsMenu()
         {
             Console.WriteLine("Loading settings information..");
-            _settings = Storage.GetStorage("settings.dat");
+            _settings = Storage.GetStorage(SettingsFile);
+
+            // Try to hide the settings file from the user as to not clutter
+            // the program folder.
+            try
+            {
+                var fileAttributes = File.GetAttributes(SettingsFile);
+
+                if (!fileAttributes.HasFlag(FileAttributes.Hidden))
+                    File.SetAttributes(SettingsFile, fileAttributes | FileAttributes.Hidden);
+            }
+            catch { }
         }
 
         public void Run(InteractiveShell.InteractiveShell gui)
@@ -60,13 +73,15 @@ namespace Zintom.GameOptimizer.Menus
                     "Display Errors: " + (DisplayErrors ? "On" : "Off"),
                     "Tip of the day: " + (TOTDEnabled ? "On" : "Off"),
                     $"Reset TOTD ({TipNumber + 1})",
-                    "Save and Exit"
+                    "Edit whitelist file",
+                    "Back"
                 };
                 string[] footers = new string[] {
-                    "If on, any errors during optimization will be displayed",
-                    "Shows at launch of the app                             ",
-                    "Reset the 'Tip of the day' back to #1                  ",
-                    "Saves all changes and goes back to the previous menu.  "
+                    "If enabled, any errors during optimization will be displayed.\n                      ",
+                    "Enable/disable the tip of the day screen                     \nwhich shows on launch.",
+                    "Reset the 'Tip of the day' back to #1.                       \n                      ",
+                    "Opens the whitelist file in the default editor program.      \n                      ",
+                    "Goes back to the previous menu.                              \n                      "
                 };
 
                 selectedOption = gui.DisplayMenu(options, footers, null, selectedOption);
@@ -81,6 +96,9 @@ namespace Zintom.GameOptimizer.Menus
                         break;
                     case 2:
                         TipNumber = 0;
+                        break;
+                    case 3:
+                        Program.OpenWithDefaultProgram(Program.WhitelistFile);
                         break;
                     default:
                         return;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using Zintom.GameOptimizer.Menus;
 using Zintom.InteractiveShell;
 
@@ -12,7 +14,7 @@ namespace Zintom.GameOptimizer
 
         public static string AppName = "Zintom's Game Optimizer";
         public const string WhitelistFile = "process_whitelist.txt";
-        const string FileComment = "##";
+        const string FileComment = "#";
 
         const int _optimizeWaitTimeMillis = 5000;
 
@@ -110,19 +112,30 @@ namespace Zintom.GameOptimizer
         /// </summary>
         static void CreateDefaultProcessWhitelistFile()
         {
-            using (var stream = File.Create(WhitelistFile))
-            using (StreamWriter sw = new StreamWriter(stream))
-            {
-                sw.WriteLine(string.Format(
-                    "{0} Put processes you don't want affected by the optimizer here.{1}" +
-                    "{0} Apps{1}Steam{1}SteamService{1}steamwebhelper{1}GameOverlayUI{1}" +
-                    "NVDisplay.Container{1}nvsphelper64{1}ffmpeg-mux64 ## OBS's encoder{1}obs64 ## Open Broadcaster{1}discord{1}{1}" +
-                    "{0} Games{1}javaw {1}Minecraft", FileComment, Environment.NewLine));
-                sw.Flush();
-                sw.Close();
-            }
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string defaultListResource = "Zintom.GameOptimizer.Assets.default_process_whitelist.txt";
 
-            Console.WriteLine("Generated " + WhitelistFile);
+            // Try get the text resource.
+            using (var resourceStream = assembly.GetManifestResourceStream(defaultListResource))
+            {
+                if (resourceStream == null)
+                {
+                    Console.WriteLine(string.Format("Error occurred when loading default whitelist file, '{0}' not found in resources or could not be loaded.", WhitelistFile));
+                    return;
+                }
+
+                using (var resourceReader = new StreamReader(resourceStream))
+                using (var fileStream = File.Create(WhitelistFile))
+                using (var fileWriter = new StreamWriter(fileStream))
+                {
+                    // Write the resource to file, flush and close.
+                    fileWriter.Write(resourceReader.ReadToEnd());
+                    fileWriter.Flush();
+                    fileWriter.Close();
+
+                    Console.WriteLine($"Generated '{WhitelistFile}'");
+                }
+            }
         }
 
         /// <summary>
@@ -153,6 +166,27 @@ namespace Zintom.GameOptimizer
             outputDisplayer.Output(string.Format("'{0}' loaded.", WhitelistFile));
 
             return whitelistedProcessNames;
+        }
+
+        /// <summary>
+        /// Opens the given filePath with the default windows program.
+        /// </summary>
+        /// <remarks>Only supported on <see cref="System.Runtime.InteropServices.OSPlatform.Windows"/></remarks>
+        /// <param name="filePath">The path to the file to start.</param>
+        public static void OpenWithDefaultProgram(string filePath)
+        {
+            if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                return;
+
+            using (var process = new Process())
+            {
+                process.StartInfo = new ProcessStartInfo
+                {
+                    FileName = "explorer",
+                    Arguments = $"\"{filePath}\""
+                };
+                process.Start();
+            }
         }
 
         private class CLIOutputDisplayer : IOutputProvider

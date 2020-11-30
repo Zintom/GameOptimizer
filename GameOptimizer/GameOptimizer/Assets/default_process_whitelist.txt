@@ -1,0 +1,64 @@
+# Put processes you don't want affected by the optimizer here.
+## Apps
+discord
+mumble
+murmur
+
+### Steam
+Steam
+SteamService
+steamwebhelper
+GameOverlayUI
+
+### Nvidia Stuff
+NVDisplay.Container
+nvsphelper64
+
+### OBS Stuff
+ffmpeg-mux64
+obs64
+
+## Games
+
+### Fortnite
+EasyAntiCheat
+FortniteClient-Win64-Shipping
+FortniteClient-Win64-Shipping_BE
+FortniteClient-Win64-Shipping_EAC
+FortniteLauncher
+UnrealCEFSubProcess
+
+### COD Black Ops 2
+t6sp
+t6mp
+t6zm
+
+### COD World at War
+CoDWaW
+CoDWaWmp
+
+### GTA V
+GTA5
+GTAVLauncher
+
+### COD Black Ops
+BlackOps
+BlackOpsMP
+
+## Misc Games
+GTAIV
+BlackOps3
+javaw
+RocketLeague
+iw4mp
+s1_mp64_ship
+iw3mp
+LEGOSWTFA_DX11
+DS4Windows
+BFBC2Game
+eurotrucks2
+Prison Architect
+Terraria
+NFS13
+SonicMania
+ironsight

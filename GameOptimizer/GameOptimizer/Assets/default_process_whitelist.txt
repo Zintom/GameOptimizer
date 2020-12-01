@@ -62,3 +62,7 @@ Terraria
 NFS13
 SonicMania
 ironsight
+cms2018
+Insurgency
+AssettoCorsa
+BlackSquadGame

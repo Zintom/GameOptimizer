@@ -7,7 +7,7 @@ namespace Zintom.GameOptimizer.Menus
 
         public void Run(InteractiveShell.InteractiveShell gui)
         {
-            gui.DrawTitle(Program.AppName, "Select an optimization method to execute:", null, true);
+            gui.DrawTitle(Program.AppName, "Select an optimization method to execute.\n(Run this app as administrator for more boosting power!)", null, true);
             string[] quickCommands = new string[] { "1: Default optimization",
                             "2: Default optimization plus Affinity optimization",
                             "Back"};

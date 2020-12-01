@@ -11,33 +11,19 @@ namespace Zintom.GameOptimizer.Menus
 
         public bool DisplayErrors
         {
-            get
-            {
-                _settings.Booleans.TryGetValue(nameof(DisplayErrors), out bool displayErrors);
-                return displayErrors;
-            }
+            get => _settings.Booleans.GetValue(nameof(DisplayErrors), false);
             private set => _settings.Edit().PutValue(nameof(DisplayErrors), value).Commit();
         }
 
         public bool TOTDEnabled
         {
-            get
-            {
-                bool exists = _settings.Booleans.TryGetValue(nameof(TOTDEnabled), out bool totdEnabled);
-                if (!exists) return true;
-
-                return totdEnabled;
-            }
+            get => _settings.Booleans.GetValue(nameof(TOTDEnabled), true);
             private set => _settings.Edit().PutValue(nameof(TOTDEnabled), value).Commit();
         }
 
         public int TipNumber
         {
-            get
-            {
-                _settings.Integers.TryGetValue(nameof(TipNumber), out int tipNumber);
-                return tipNumber;
-            }
+            get => _settings.Integers.GetValue(nameof(TipNumber), 0);
             set => _settings.Edit().PutValue(nameof(TipNumber), value).Commit();
         }
 

@@ -24,9 +24,9 @@ namespace Zintom.GameOptimizer.Menus
                 switch (selectedOption)
                 {
                     case 0:
-                        Process.Start("notepad.exe", "README.txt"); break;
+                        Program.OpenWithDefaultProgram("README.txt"); break;
                     case 1:
-                        Process.Start("notepad.exe", "LICENSE.txt"); break;
+                        Program.OpenWithDefaultProgram("LICENSE.txt"); break;
                     default:
                         return;
                 }

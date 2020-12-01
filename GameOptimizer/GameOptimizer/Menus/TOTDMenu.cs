@@ -5,9 +5,10 @@
         private readonly string[] tips = new string[] {
             "Make sure to add your games/apps to the whitelist file\nor they will be negatively affected by the optimizer!", 
             "Use the 'edit' command to quickly\nopen the process whitelist file.",
-            "Use Affinity optimization for even more kick!\nSee option 2 under the 'Optimize' sub-menu.",
+            "Run the application as administrator for more boosting power!\n\nThe optimizer will be able to isolate and\ndeprioritise more applications.",
+            "Use Affinity optimization for even more kick!\n\nSee option 2 under the 'Optimize' sub-menu.",
             "Cannot be run in DOS mode!",
-            "If for some reason you delete the 'restore_state' file\nand are unable to restore optimizations;\neither restart your PC(recommended) or use the\n'res -force' command from the 'Command Input' screen."
+            "If for some reason you delete the 'restore_state' file\nand are unable to restore optimizations;\nEither restart your PC(recommended) or use the\n'res -force' command from the 'Command Input' screen."
             };
 
         readonly ISettingsProvider _settings;

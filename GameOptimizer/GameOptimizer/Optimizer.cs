@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Zintom.StorageFacility;
 
@@ -34,7 +35,12 @@ namespace Zintom.GameOptimizer
         /// <summary>
         /// The optimizer should try to adjust the <see cref="Process.ProcessorAffinity"/> of 'non-priority' processes.
         /// </summary>
-        OptimizeAffinity = 16
+        OptimizeAffinity = 16,
+        /// <summary>
+        /// The optimizer will try to put all '<c><see cref="Config.StreamerSpecificExecutables"/></c>' on the cores specified by '<c><see cref="Config.LimitStreamerSpecificExecutablesAffinity"/></c>',
+        /// all other non 'streamer specific executables' will be put on the remaining available cores.
+        /// </summary>
+        StreamerMode = 32
     }
 
     /// <summary>
@@ -213,6 +219,8 @@ namespace Zintom.GameOptimizer
         private readonly int _optimizeAffinityMinimumCores = 4;
         private readonly nint _affinityAllCores = BitMask.SetBitRange(0, 0, Environment.ProcessorCount);
 
+        private readonly Config? _config;
+
         private readonly object _whitelistLockObject = new object();
         private IReadOnlyList<string> _whitelistedProcessNames;
 
@@ -241,10 +249,11 @@ namespace Zintom.GameOptimizer
         public bool ShowErrorCodes { get; set; }
 
         /// <param name="outputProvider">If not <b>null</b>, the optimizer will use this to output messages/problems or errors.</param>
-        public Optimizer(IReadOnlyList<string> whitelistedProcessNames, IOutputProvider? outputProvider = null)
+        internal Optimizer(IReadOnlyList<string> whitelistedProcessNames, Config? config = null, IOutputProvider? outputProvider = null)
         {
             _whitelistedProcessNames = whitelistedProcessNames;
             _outputProvider = outputProvider;
+            _config = config;
 
             _restoreStateStorage = Storage.GetStorage(RestoreStateFile);
 
@@ -281,6 +290,9 @@ namespace Zintom.GameOptimizer
             if (flags.HasFlag(OptimizeConditions.IgnoreOrdinaryProcesses) && flags.HasFlag(OptimizeConditions.OptimizeAffinity))
                 _outputProvider?.OutputError($"Flag conflict! {OptimizeConditions.OptimizeAffinity} is overridden by {OptimizeConditions.IgnoreOrdinaryProcesses}.");
 
+            if (flags.HasFlag(OptimizeConditions.StreamerMode) && flags.HasFlag(OptimizeConditions.OptimizeAffinity))
+                _outputProvider?.OutputError($"Flag conflict! {OptimizeConditions.StreamerMode} overrides {OptimizeConditions.OptimizeAffinity}.");
+
             if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount < _optimizeAffinityMinimumCores)
                 _outputProvider?.OutputHighlight($"{OptimizeConditions.OptimizeAffinity} flag is not applied on machines with less than {_optimizeAffinityMinimumCores}.");
             #endregion
@@ -307,49 +319,75 @@ namespace Zintom.GameOptimizer
                     continue;
                 }
 
-                foreach (string priority in _whitelistedProcessNames)
+                bool isWhitelisted = false;
+                foreach (var whitelistedProcess in _whitelistedProcessNames)
                 {
-                    if (process.ProcessName.ToLower() == priority.ToLower())
+                    if (process.ProcessName.ToLower() == whitelistedProcess.ToLower())
                     {
-                        if (flags.HasFlag(OptimizeConditions.BoostPriorities))
-                        {
-                            // Set the priority to AboveNormal, if successful increment the
-                            // optimizationsRan by one.
-                            if (ChangePriority(process, ProcessPriorityClass.AboveNormal))
-                            {
-                                optimizationsRan++;
-                                _outputProvider?.OutputHighlight("Prioritized '" + process.ProcessName + "' because it is a whitelisted process.");
-                            }
-                        }
-                        else
-                        {
-                            _outputProvider?.OutputHighlight("Ignored: '" + process.ProcessName + "' because it is a whitelisted process.");
-                        }
-
-                        goto continueLoop;
+                        isWhitelisted = true;
+                        break;
                     }
                 }
 
-                if (process.ProcessName != "svchost" && !flags.HasFlag(OptimizeConditions.IgnoreOrdinaryProcesses))
+                if (isWhitelisted && flags.HasFlag(OptimizeConditions.BoostPriorities))
                 {
-                    // Set process to idle priority, if successful increment the
+                    // Set the priority to AboveNormal, if successful increment the
                     // optimizationsRan by one.
-                    if (ChangePriority(process, ProcessPriorityClass.Idle))
-                        optimizationsRan++;
-
-                    if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount >= _optimizeAffinityMinimumCores)
+                    if (ChangePriority(process, ProcessPriorityClass.AboveNormal))
                     {
-                        // Set the affinity to the last 2 cores.
-                        nint newAffinity = BitMask.SetBitRange(0, Environment.ProcessorCount - 2, Environment.ProcessorCount);
-
-                        // Change the affinity, if successful increment the
-                        // optimizationsRan by one.
-                        if (ChangeAffinity(process, (ProcessAffinities)newAffinity))
-                            optimizationsRan++;
+                        optimizationsRan++;
+                        _outputProvider?.OutputHighlight("Prioritized '" + process.ProcessName + "' because it is a whitelisted process.");
                     }
                 }
 
-            continueLoop:;
+                if (flags.HasFlag(OptimizeConditions.StreamerMode) &&
+                    _config != null &&
+                    _config.LimitStreamerSpecificExecutablesAffinity != null &&
+                    _config.StreamerSpecificExecutables != null)
+                {
+                    nint newAffinity;
+                    // If the process is a "stream specific executable", then force it onto specific cores.
+                    if (_config.StreamerSpecificExecutables.AsSpan().Contains(process.ProcessName))
+                    {
+                        newAffinity = GetAsAffinityMask(_config.LimitStreamerSpecificExecutablesAffinity, Environment.ProcessorCount);
+                    }
+                    // If the process is not a "stream specific executable", force it onto the cores the streaming software isn't using.
+                    else
+                    {
+                        newAffinity = GetAsAffinityMask(_config.LimitStreamerSpecificExecutablesAffinity, Environment.ProcessorCount, invertMask: true);
+                    }
+
+                    if (ChangeAffinity(process, (ProcessAffinities)newAffinity))
+                    {
+                        optimizationsRan++;
+                    }
+                }
+
+                if (isWhitelisted)
+                {
+                    _outputProvider?.OutputHighlight("Did not de-prioritize: '" + process.ProcessName + "' because it is a whitelisted process.");
+                }
+                else
+                {
+                    if (process.ProcessName != "svchost" && !flags.HasFlag(OptimizeConditions.IgnoreOrdinaryProcesses))
+                    {
+                        // Set process to idle priority, if successful increment the
+                        // optimizationsRan by one.
+                        if (ChangePriority(process, ProcessPriorityClass.Idle))
+                            optimizationsRan++;
+
+                        if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount >= _optimizeAffinityMinimumCores)
+                        {
+                            // Set the affinity to the last 2 cores.
+                            nint newAffinity = BitMask.SetBitRange(0, Environment.ProcessorCount - 2, Environment.ProcessorCount);
+
+                            // Change the affinity, if successful increment the
+                            // optimizationsRan by one.
+                            if (ChangeAffinity(process, (ProcessAffinities)newAffinity))
+                                optimizationsRan++;
+                        }
+                    }
+                }
             }
 
             _restoreStateStorage.Edit().Commit();
@@ -464,6 +502,36 @@ namespace Zintom.GameOptimizer
                 return "All cores";
             else
                 return ((ProcessAffinities)affinity).ToString();
+        }
+
+        /// <summary>
+        /// Converts a Span of ints (representing enabled cores) and converts it to a valid affinity mask
+        /// which can be applied to a process.
+        /// </summary>
+        /// <param name="arrayOfCoresEnabled"></param>
+        /// <remarks>Throws <see cref="ArgumentException"/> if any of the numbers in the <paramref name="arrayOfCoresEnabled"/> are
+        /// wider than the width of a native integer on the executing machine.</remarks>
+        /// <exception cref="ArgumentException"></exception>
+        nint GetAsAffinityMask(Span<int> arrayOfCoresEnabled, int availableCores, bool invertMask = false)
+        {
+            nint value = invertMask ? (nint)Convert.ToInt64("".PadRight(availableCores, '1'), 2)
+                                    : 0;
+
+            for (int i = 0; i < arrayOfCoresEnabled.Length; i++)
+            {
+                if (arrayOfCoresEnabled[i] >= availableCores) { throw new ArgumentException($"{nameof(GetAsAffinityMask)}: The mask is {availableCores} wide, the number '{arrayOfCoresEnabled[i]}' is out of range."); }
+
+                if (invertMask)
+                {
+                    value = BitMask.UnsetBit(value, arrayOfCoresEnabled[i]);
+                }
+                else
+                {
+                    value = BitMask.SetBit(value, arrayOfCoresEnabled[i]);
+                }
+            }
+
+            return value;
         }
 
         /// <summary>

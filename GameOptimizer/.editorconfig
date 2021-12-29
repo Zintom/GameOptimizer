@@ -17,3 +17,6 @@ dotnet_diagnostic.CA1305.severity = none
 
 # CA1045: Do not pass types by reference
 dotnet_diagnostic.CA1045.severity = none
+
+# IDE0063: Use simple 'using' statement
+dotnet_diagnostic.IDE0063.severity = none

@@ -38,7 +38,7 @@ namespace Zintom.GameOptimizer
         /// Sets the bit at the given index.
         /// </summary>
         /// <param name="bitIndex">The index of the bit you wish to set <b>(evaluated right to left)</b>.</param>
-        public static nint SetBit(this nint val, int bitIndex)
+        public static nint SetBit(nint val, int bitIndex)
         {
             nint mask = (nint)1 << bitIndex;
             return val |= mask;
@@ -48,7 +48,7 @@ namespace Zintom.GameOptimizer
         /// Unsets the bit at the given index.
         /// </summary>
         /// <param name="bitIndex">The index of the bit you wish to unset <b>(evaluated right to left)</b>.</param>
-        public static nint UnsetBit(this nint val, int bitIndex)
+        public static nint UnsetBit(nint val, int bitIndex)
         {
             nint mask = (nint)1 << bitIndex;
             return val &= ~mask;
@@ -60,7 +60,7 @@ namespace Zintom.GameOptimizer
         /// <param name="val">The value to modify.</param>
         /// <param name="startIndex">The index of the start bit <b>(evaluated right to left)</b>.</param>
         /// <param name="endIndex">The index of the end bit <b>(evaluated right to left)</b>.</param>
-        public static nint SetBitRange(this nint val, int startIndex, int endIndex)
+        public static nint SetBitRange(nint val, int startIndex, int endIndex)
         {
             return ModifyBitRange(val, startIndex, endIndex, true);
         }
@@ -71,7 +71,7 @@ namespace Zintom.GameOptimizer
         /// <param name="val">The value to modify.</param>
         /// <param name="startIndex">The index of the start bit <b>(evaluated right to left)</b>.</param>
         /// <param name="endIndex">The index of the end bit <b>(evaluated right to left)</b>.</param>
-        public static nint UnsetBitRange(this nint val, int startIndex, int endIndex)
+        public static nint UnsetBitRange(nint val, int startIndex, int endIndex)
         {
             return ModifyBitRange(val, startIndex, endIndex, false);
         }
@@ -80,7 +80,7 @@ namespace Zintom.GameOptimizer
         /// <param name="startIndex">The index of the start bit <b>(evaluated right to left)</b>.</param>
         /// <param name="endIndex">The index of the end bit <b>(evaluated right to left)</b>.</param>
         /// <param name="setBits">Default behaviour is to unset the bits, set to <see langword="true"/> to set bits.</param>
-        private static nint ModifyBitRange(this nint val, int startIndex, int endIndex, bool setBits)
+        private static nint ModifyBitRange(nint val, int startIndex, int endIndex, bool setBits)
         {
             if (startIndex < 0) throw new ArgumentOutOfRangeException($"The {nameof(startIndex)} must be positive.");
 

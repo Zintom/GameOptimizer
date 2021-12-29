@@ -14,6 +14,7 @@ namespace Zintom.GameOptimizer
 
         public static string AppName = "Zintom's Game Optimizer";
         public const string WhitelistFile = "process_whitelist.txt";
+        internal const string ConfigFile = "config.json";
         const string FileComment = "#";
 
         const int _optimizeWaitTimeMillis = 5000;
@@ -40,8 +41,9 @@ namespace Zintom.GameOptimizer
             _defaultForeColor = Console.ForegroundColor;
 
             SetupInteractiveShell();
+            ConfigManager.WriteDefaultConfigIfNotExists(ConfigFile);
 
-            Optimizer = new Optimizer(GetWhitelistedProcessNames(outputDisplayer), outputDisplayer);
+            Optimizer = new Optimizer(GetWhitelistedProcessNames(outputDisplayer), ConfigManager.Read(ConfigFile), outputDisplayer);
 
             // Begin Main Menu application loop
             IConsoleMenu mainMenu = new MainMenu();

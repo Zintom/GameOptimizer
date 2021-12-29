@@ -509,6 +509,8 @@ namespace Zintom.GameOptimizer
         /// which can be applied to a process.
         /// </summary>
         /// <param name="arrayOfCoresEnabled"></param>
+        /// <param name="availableCores">The number of cores available to the runtime.</param>
+        /// <param name="invertMask">Whether <c><paramref name="arrayOfCoresEnabled"/></c> should be treated as '<c>arrayOfCoresDisabled</c>'.</param>
         /// <remarks>Throws <see cref="ArgumentException"/> if any of the numbers in the <paramref name="arrayOfCoresEnabled"/> are
         /// wider than the width of a native integer on the executing machine.</remarks>
         /// <exception cref="ArgumentException"></exception>

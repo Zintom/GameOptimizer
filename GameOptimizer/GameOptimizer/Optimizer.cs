@@ -26,16 +26,17 @@ namespace Zintom.GameOptimizer
         /// </summary>
         NoHide = 2,
         /// <summary>
-        /// The optimizer should boost each priority process to <see cref="ProcessPriorityClass.AboveNormal"/> rather than leaving it at <see cref="ProcessPriorityClass.Normal"/>.
+        /// The optimizer should boost each whitelisted process to <see cref="ProcessPriorityClass.AboveNormal"/> rather than leaving it at <see cref="ProcessPriorityClass.Normal"/>.
         /// </summary>
         BoostPriorities = 4,
         /// <summary>
-        /// The optimizer should not de-prioritize 'non-priority' proccesses.
+        /// The optimizer should not de-prioritize 'non-whitelisted' proccesses.
         /// </summary>
         IgnoreOrdinaryProcesses = 8,
         /// <summary>
-        /// The optimizer should try to adjust the <see cref="Process.ProcessorAffinity"/> of non-game specific processes.
+        /// Try to optimize the <see cref="Process.ProcessorAffinity"/> of non-game specific processes.
         /// </summary>
+        /// <remarks>Whitelisted processes are not immune to this flag, only games are.</remarks>
         OptimizeAffinity = 16,
         /// <summary>
         /// The optimizer will try to put all '<c><see cref="Config.StreamerSpecificExecutables"/></c>' on the cores specified by '<c><see cref="Config.LimitStreamerSpecificExecutablesAffinity"/></c>',
@@ -224,7 +225,8 @@ namespace Zintom.GameOptimizer
 
         private readonly object _optimizeLockObject = new();
 
-        internal IWhitelistedProcessIdentifierSource WhitelistedProcessIdentifier { get; init; }
+        private readonly IWhitelistedProcessIdentifierSource _whitelistedProcessIdentifier;
+        private readonly IGameProcessIdentifierSource _gameProcessIdentifier;
 
         /// <summary>
         /// <b>true</b> if optimization has been run. Returns to <b>false</b> when <see cref="Restore"/> is ran.
@@ -236,9 +238,10 @@ namespace Zintom.GameOptimizer
         internal bool ShowErrorCodes { get; set; }
 
         /// <param name="outputProvider">If not <b>null</b>, the optimizer will use this to output messages/problems or errors.</param>
-        internal Optimizer(IWhitelistedProcessIdentifierSource whitelistedProcessIdentifier, Config? config = null, IOutputProvider? outputProvider = null)
+        internal Optimizer(IWhitelistedProcessIdentifierSource whitelistedProcessIdentifier, IGameProcessIdentifierSource gameProcessIdentifier, Config? config = null, IOutputProvider? outputProvider = null)
         {
-            this.WhitelistedProcessIdentifier = whitelistedProcessIdentifier;
+            this._whitelistedProcessIdentifier = whitelistedProcessIdentifier;
+            this._gameProcessIdentifier = gameProcessIdentifier;
             this._outputProvider = outputProvider;
             this._config = config;
 
@@ -270,8 +273,6 @@ namespace Zintom.GameOptimizer
             // Lock so that the optimizer cannot be ran twice at the same time.
             Monitor.Enter(_optimizeLockObject);
 
-            IGameProcessIdentifierSource gameIdentifier = new UsageBasedGameProcessIdentifier();
-
             _flagsUsedForOptimize = flags;
 
             #region Flag Checks
@@ -292,6 +293,8 @@ namespace Zintom.GameOptimizer
             // Clear the restore_state file
             _restoreStateStorage.Edit().Clear(true);
 
+            RefreshProcessIdentifiers();
+
             Process[] currentProcesses = Process.GetProcesses();
 
             // Sort the array alphabetically.
@@ -307,9 +310,10 @@ namespace Zintom.GameOptimizer
                     continue;
                 }
 
-                bool isWhitelisted = WhitelistedProcessIdentifier.IsWhitelisted(process);
+                bool isGame = _gameProcessIdentifier.IsGame(process);
 
-                bool isGame = gameIdentifier.IsGame(process);
+                // Games are considers whitelisted by default.
+                bool isWhitelisted = isGame || _whitelistedProcessIdentifier.IsWhitelisted(process);
 
                 if (isWhitelisted && flags.HasFlag(OptimizeConditions.BoostPriorities))
                 {
@@ -391,6 +395,24 @@ namespace Zintom.GameOptimizer
             Monitor.Exit(_optimizeLockObject);
 
             return optimizationsRan;
+        }
+
+        /// <summary>
+        /// Calls refresh on the <see cref="_whitelistedProcessIdentifier"/> and <see cref="_gameProcessIdentifier"/>.
+        /// </summary>
+        /// <remarks>If both the identifiers are the same object, <c>Refresh</c> is only called once.</remarks>
+        private void RefreshProcessIdentifiers()
+        {
+            if (_whitelistedProcessIdentifier.Equals(_gameProcessIdentifier))
+            {
+                _whitelistedProcessIdentifier.Refresh();
+            }
+            else
+            {
+                // Refresh the identifiers seperately as they are not the same object.
+                _whitelistedProcessIdentifier.Refresh();
+                _gameProcessIdentifier.Refresh();
+            }
         }
 
         /// <summary>

@@ -64,7 +64,7 @@ namespace Zintom.GameOptimizer.Menus
                     Process.Start("sndvol.exe", "-m " + NativeMethods.GetVirtualDisplaySize().Width);
                     break;
                 case "edit":
-                    Process.Start("notepad.exe", Program.WhitelistFile);
+                    Process.Start("notepad.exe", WhitelistReader.WhitelistFile);
                     break;
                 case "help":
                     IConsoleMenu helpMenu = new HelpMenu();

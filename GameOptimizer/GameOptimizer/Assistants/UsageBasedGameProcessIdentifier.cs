@@ -191,10 +191,7 @@ namespace Zintom.GameOptimizer.Assistants
             return false;
         }
 
-        public void Refresh()
-        {
-            throw new NotImplementedException($"{nameof(UsageBasedGameProcessIdentifier)} does not support the {nameof(IGameProcessIdentifierSource.Refresh)} function.");
-        }
+        public void Refresh() { }
 
         [DebuggerDisplay("PID = {ProcessID}, GPU Usage = {GPU_Usage}")]
         /// <summary>

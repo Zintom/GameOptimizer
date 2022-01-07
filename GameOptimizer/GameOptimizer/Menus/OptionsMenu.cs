@@ -85,7 +85,7 @@ namespace Zintom.GameOptimizer.Menus
                         TipNumber = 0;
                         break;
                     case 3:
-                        Program.OpenWithDefaultProgram(WhitelistReader.WhitelistFile);
+                        Program.OpenWithDefaultProgram(ExplicitWhitelistedProcessIdentifier.WhitelistFile);
                         break;
                     default:
                         return;

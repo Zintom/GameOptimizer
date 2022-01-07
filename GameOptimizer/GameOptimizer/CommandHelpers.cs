@@ -11,7 +11,7 @@ namespace Zintom.GameOptimizer
 
         public static void Command_OptimizeWithFlags(OptimizeConditions flags)
         {
-            Optimizer.WhitelistedProcessNames = WhitelistReader.GetWhitelistedProcessNames(outputDisplayer);
+            Optimizer.WhitelistedProcessIdentifier.Refresh();
             _gui.DrawTitle(AppName, null, true);
             _gui.DrawSubtitleText(string.Format("Optimizing in {0} seconds...", _optimizeWaitTimeMillis / 1000));
 

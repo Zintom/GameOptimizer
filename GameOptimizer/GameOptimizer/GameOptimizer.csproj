@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <RootNamespace>Zintom.GameOptimizer</RootNamespace>
     <Nullable>enable</Nullable>
     <NeutralLanguage>en</NeutralLanguage>
@@ -36,7 +36,10 @@
 
   <ItemGroup>
     <PackageReference Include="InteractiveShell" Version="2.2.5" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.226801" />
     <PackageReference Include="StorageFacility" Version="1.3.7" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="6.0.0" />
+    <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

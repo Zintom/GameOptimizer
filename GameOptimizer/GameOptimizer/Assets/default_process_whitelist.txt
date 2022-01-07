@@ -30,6 +30,8 @@ obs64
 
 <Games>
 
+BEService
+
 ### Fortnite
 EasyAntiCheat
 FortniteClient-Win64-Shipping

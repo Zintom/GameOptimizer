@@ -222,39 +222,25 @@ namespace Zintom.GameOptimizer
 
         private readonly Config? _config;
 
-        private readonly object _whitelistLockObject = new object();
-        private IReadOnlyList<string> _whitelistedProcessNames;
+        private readonly object _optimizeLockObject = new();
 
-        /// <summary>
-        /// Gets or sets the whitelisted process names list.
-        /// </summary>
-        public IReadOnlyList<string> WhitelistedProcessNames
-        {
-            get => _whitelistedProcessNames;
-            set
-            {
-                lock (_whitelistLockObject)
-                {
-                    _whitelistedProcessNames = value;
-                }
-            }
-        }
+        internal IWhitelistedProcessIdentifierSource WhitelistedProcessIdentifier { get; init; }
 
         /// <summary>
         /// <b>true</b> if optimization has been run. Returns to <b>false</b> when <see cref="Restore"/> is ran.
         /// </summary>
-        public bool IsOptimized { get; private set; }
+        internal bool IsOptimized { get; private set; }
         /// <summary>
         /// Whether the optimizer should display errors when it encounters them.
         /// </summary>
-        public bool ShowErrorCodes { get; set; }
+        internal bool ShowErrorCodes { get; set; }
 
         /// <param name="outputProvider">If not <b>null</b>, the optimizer will use this to output messages/problems or errors.</param>
-        internal Optimizer(IReadOnlyList<string> whitelistedProcessNames, Config? config = null, IOutputProvider? outputProvider = null)
+        internal Optimizer(IWhitelistedProcessIdentifierSource whitelistedProcessIdentifier, Config? config = null, IOutputProvider? outputProvider = null)
         {
-            _whitelistedProcessNames = whitelistedProcessNames;
-            _outputProvider = outputProvider;
-            _config = config;
+            this.WhitelistedProcessIdentifier = whitelistedProcessIdentifier;
+            this._outputProvider = outputProvider;
+            this._config = config;
 
             _restoreStateStorage = Storage.GetStorage(RestoreStateFile);
 
@@ -276,12 +262,15 @@ namespace Zintom.GameOptimizer
         /// Runs the optimizer with the given <paramref name="flags"/>.
         /// </summary>
         /// <returns>The number of optimizations ran.</returns>
-        public int Optimize(OptimizeConditions flags = OptimizeConditions.None)
+        internal int Optimize(OptimizeConditions flags = OptimizeConditions.None)
         {
             if (IsOptimized) throw new InvalidOperationException("Cannot optimize whilst already optimized, please Restore first.");
             IsOptimized = true;
 
-            IGameIdentifierSource gameIdentifier = new UsageBasedGameIdentifierSource();
+            // Lock so that the optimizer cannot be ran twice at the same time.
+            Monitor.Enter(_optimizeLockObject);
+
+            IGameProcessIdentifierSource gameIdentifier = new UsageBasedGameProcessIdentifier();
 
             _flagsUsedForOptimize = flags;
 
@@ -299,10 +288,6 @@ namespace Zintom.GameOptimizer
             if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount < _optimizeAffinityMinimumCores)
                 _outputProvider?.OutputHighlight($"{OptimizeConditions.OptimizeAffinity} flag is not applied on machines with less than {_optimizeAffinityMinimumCores}.");
             #endregion
-
-            // Lock on the process whitelist as we do not want it to be modified
-            // whilst we are looping.
-            Monitor.Enter(_whitelistLockObject);
 
             // Clear the restore_state file
             _restoreStateStorage.Edit().Clear(true);
@@ -322,15 +307,7 @@ namespace Zintom.GameOptimizer
                     continue;
                 }
 
-                bool isWhitelisted = false;
-                foreach (var whitelistedProcess in _whitelistedProcessNames)
-                {
-                    if (process.ProcessName.ToLower() == whitelistedProcess.ToLower())
-                    {
-                        isWhitelisted = true;
-                        break;
-                    }
-                }
+                bool isWhitelisted = WhitelistedProcessIdentifier.IsWhitelisted(process);
 
                 bool isGame = gameIdentifier.IsGame(process);
 
@@ -410,8 +387,8 @@ namespace Zintom.GameOptimizer
 
             _restoreStateStorage.Edit().Commit();
 
-            // Release the whitelist so that it can be modified.
-            Monitor.Exit(_whitelistLockObject);
+            // Release the lock to allow this method to run again.
+            Monitor.Exit(_optimizeLockObject);
 
             return optimizationsRan;
         }
@@ -420,7 +397,7 @@ namespace Zintom.GameOptimizer
         /// Restores all changes made to active processes by the `Optimize` method, this includes their Priority and Affinity.
         /// </summary>
         /// <returns>The number of restore operations completed.</returns>
-        public int Restore()
+        internal int Restore()
         {
             if (_flagsUsedForOptimize.HasFlag(OptimizeConditions.KillExplorerExe))
                 Process.Start(Environment.SystemDirectory + "\\..\\explorer.exe");
@@ -489,7 +466,7 @@ namespace Zintom.GameOptimizer
         /// Forces all active processes to <see cref="ProcessPriorityClass.Normal"/> and All Core affinity.
         /// </summary>
         /// <returns>The number of processes affected by the force restore.</returns>
-        public int ForceRestoreToNormal()
+        internal int ForceRestoreToNormal()
         {
             Process[] processes = Process.GetProcesses();
 

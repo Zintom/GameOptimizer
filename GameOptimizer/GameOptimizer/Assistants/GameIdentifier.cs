@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace Zintom.GameOptimizer
+namespace Zintom.GameOptimizer.Assistants
 {
     internal interface IGameIdentifierSource
     {

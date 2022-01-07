@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Zintom.GameOptimizer.Assistants;
 using Zintom.StorageFacility;
 
 namespace Zintom.GameOptimizer

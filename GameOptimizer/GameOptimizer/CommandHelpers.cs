@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Zintom.GameOptimizer.Assistants;
 using Zintom.GameOptimizer.Helpers;
 
 namespace Zintom.GameOptimizer

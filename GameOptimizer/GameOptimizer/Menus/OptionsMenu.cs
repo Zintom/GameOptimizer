@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Zintom.GameOptimizer.Assistants;
 using Zintom.StorageFacility;
 
 namespace Zintom.GameOptimizer.Menus

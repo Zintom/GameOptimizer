@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-namespace Zintom.GameOptimizer
+namespace Zintom.GameOptimizer.Assistants
 {
     internal class WhitelistReader
     {

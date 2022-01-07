@@ -1,4 +1,13 @@
 # Put processes you don't want affected by the optimizer here.
+# 
+# Text inside a <> tag is treated as a flag to indicate the type of processes that proceed it.
+#
+# <Whitelisted> - Processes after this tag should be considered whitelisted from the 'priority' limiter.
+# <Games> - Processes after this tag should be considered a game and will benefit from affinity optimizations, processes
+# with under the <Games> tag are also treated as <Whitelisted>
+
+<Whitelisted>
+
 ## Apps
 Discord
 mumble
@@ -16,16 +25,16 @@ nvsphelper64
 
 ### OBS Stuff
 ffmpeg-mux64
+obs-ffmpeg-mux
 obs64
 
-## Games
+<Games>
 
 ### Fortnite
 EasyAntiCheat
 FortniteClient-Win64-Shipping
 FortniteClient-Win64-Shipping_BE
 FortniteClient-Win64-Shipping_EAC
-FortniteLauncher
 UnrealCEFSubProcess
 
 ### COD Black Ops 2

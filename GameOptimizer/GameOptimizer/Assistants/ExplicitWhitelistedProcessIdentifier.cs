@@ -97,7 +97,7 @@ namespace Zintom.GameOptimizer.Assistants
         {
             for (int i = 0; i < _whiteListedProcessNames.Count; i++)
             {
-                if (process.ProcessName == _whiteListedProcessNames[i].ToLower())
+                if (process.ProcessName == _whiteListedProcessNames[i])
                 {
                     return true;
                 }

@@ -33,7 +33,7 @@ namespace Zintom.GameOptimizer
         /// </summary>
         IgnoreOrdinaryProcesses = 8,
         /// <summary>
-        /// The optimizer should try to adjust the <see cref="Process.ProcessorAffinity"/> of 'non-priority' processes.
+        /// The optimizer should try to adjust the <see cref="Process.ProcessorAffinity"/> of non-game specific processes.
         /// </summary>
         OptimizeAffinity = 16,
         /// <summary>
@@ -280,6 +280,8 @@ namespace Zintom.GameOptimizer
             if (IsOptimized) throw new InvalidOperationException("Cannot optimize whilst already optimized, please Restore first.");
             IsOptimized = true;
 
+            IGameIdentifierSource gameIdentifier = new UsageBasedGameIdentifierSource();
+
             _flagsUsedForOptimize = flags;
 
             #region Flag Checks
@@ -329,6 +331,8 @@ namespace Zintom.GameOptimizer
                     }
                 }
 
+                bool isGame = gameIdentifier.IsGame(process);
+
                 if (isWhitelisted && flags.HasFlag(OptimizeConditions.BoostPriorities))
                 {
                     // Set the priority to AboveNormal, if successful increment the
@@ -341,17 +345,20 @@ namespace Zintom.GameOptimizer
                 }
 
                 if (flags.HasFlag(OptimizeConditions.StreamerMode) &&
+                    process.ProcessName != "svchost" &&
                     _config != null &&
                     _config.LimitStreamerSpecificExecutablesAffinity != null &&
                     _config.StreamerSpecificExecutables != null)
                 {
                     nint newAffinity;
-                    // If the process is a "stream specific executable", then force it onto specific cores.
-                    if (_config.StreamerSpecificExecutables.AsSpan().Contains(process.ProcessName))
+
+                    // If the process is a "stream specific executable" or isn't a whitelisted process, then force it onto specific cores.
+                    if (_config.StreamerSpecificExecutables.AsSpan().Contains(process.ProcessName) ||
+                        isWhitelisted == false)
                     {
                         newAffinity = GetAsAffinityMask(_config.LimitStreamerSpecificExecutablesAffinity, Environment.ProcessorCount);
                     }
-                    // If the process is not a "stream specific executable", force it onto the cores the streaming software isn't using.
+                    // If the process is not a "stream specific executable" or is whitelisted, force it onto the cores the streaming software isn't using.
                     else
                     {
                         newAffinity = GetAsAffinityMask(_config.LimitStreamerSpecificExecutablesAffinity, Environment.ProcessorCount, invertMask: true);
@@ -375,18 +382,28 @@ namespace Zintom.GameOptimizer
                         // optimizationsRan by one.
                         if (ChangePriority(process, ProcessPriorityClass.Idle))
                             optimizationsRan++;
-
-                        if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount >= _optimizeAffinityMinimumCores)
-                        {
-                            // Set the affinity to the last 2 cores.
-                            nint newAffinity = BitMask.SetBitRange(0, Environment.ProcessorCount - 2, Environment.ProcessorCount);
-
-                            // Change the affinity, if successful increment the
-                            // optimizationsRan by one.
-                            if (ChangeAffinity(process, (ProcessAffinities)newAffinity))
-                                optimizationsRan++;
-                        }
                     }
+                }
+
+                if (process.ProcessName != "svchost" &&
+                    flags.HasFlag(OptimizeConditions.OptimizeAffinity) &&
+                    Environment.ProcessorCount >= _optimizeAffinityMinimumCores)
+                {
+                    nint newAffinity;
+                    if (isGame)
+                    {
+                        // If this is a game process then put it on the first 4 cores.
+                        newAffinity = BitMask.SetBitRange(0, 0, Environment.ProcessorCount - 2);
+                    }
+                    else
+                    {
+                        // Set the affinity to the last 2 cores because it is not a game.
+                        newAffinity = BitMask.SetBitRange(0, Environment.ProcessorCount - 2, Environment.ProcessorCount);
+                    }
+
+                    // Change the affinity, if successful increment the optimizationsRan by one.
+                    if (ChangeAffinity(process, (ProcessAffinities)newAffinity))
+                        optimizationsRan++;
                 }
             }
 

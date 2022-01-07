@@ -1,6 +1,6 @@
 # Put processes you don't want affected by the optimizer here.
 ## Apps
-discord
+Discord
 mumble
 murmur
 

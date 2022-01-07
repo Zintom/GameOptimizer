@@ -39,7 +39,7 @@ namespace Zintom.GameOptimizer
             SetupInteractiveShell();
             ConfigManager.WriteDefaultConfigIfNotExists(ConfigFile);
 
-            Optimizer = new Optimizer(WhitelistReader.GetWhitelistedProcessNames(outputDisplayer), ConfigManager.Read(ConfigFile), outputDisplayer);
+            Optimizer = new Optimizer(new ExplicitWhitelistedProcessIdentifier(outputDisplayer), ConfigManager.Read(ConfigFile), outputDisplayer);
 
             // Begin Main Menu application loop
             IConsoleMenu mainMenu = new MainMenu();

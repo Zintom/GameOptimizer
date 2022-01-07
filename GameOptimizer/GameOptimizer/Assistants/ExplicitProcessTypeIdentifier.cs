@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Zintom.GameOptimizer.Assistants
 {
     /// <summary>
     /// Explicitly identifies whitlisted processes via the process whitelist configuration file.
     /// </summary>
+    /// <remarks>Implements both <see cref="IWhitelistedProcessIdentifierSource"/> and <see cref="IGameProcessIdentifierSource"/>.</remarks>
     internal class ExplicitProcessTypeIdentifier : IWhitelistedProcessIdentifierSource, IGameProcessIdentifierSource
     {
         internal const string WhitelistFile = "process_whitelist.txt";
@@ -20,18 +18,28 @@ namespace Zintom.GameOptimizer.Assistants
         private readonly IOutputProvider? _outputDisplayer;
 
         /// <summary>
-        /// Holds the list of whitelisted process names as of the last <see cref="Refresh"/>.
+        /// This is a fallback source for identifying whether a process is a game if we can't determine it ourselves.
         /// </summary>
-        private List<string> _whiteListedProcessNames = new();
+        private readonly IGameProcessIdentifierSource? _gameProcessIdentifierFallback;
 
         /// <summary>
         /// Holds the list of whitelisted process names as of the last <see cref="Refresh"/>.
         /// </summary>
-        private List<string> _gameProcessNames = new();
+        private readonly List<string> _whiteListedProcessNames = new();
 
-        internal ExplicitProcessTypeIdentifier(IOutputProvider? outputDisplayer = null)
+        /// <summary>
+        /// Holds the list of whitelisted process names as of the last <see cref="Refresh"/>.
+        /// </summary>
+        private readonly List<string> _gameProcessNames = new();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameProcessIdentifierFallback">A fallback source for identifying whether a process is a game if we can't determine it ourselves.</param>
+        internal ExplicitProcessTypeIdentifier(IGameProcessIdentifierSource? gameProcessIdentifierFallback = null, IOutputProvider? outputDisplayer = null)
         {
             _outputDisplayer = outputDisplayer;
+            _gameProcessIdentifierFallback = gameProcessIdentifierFallback;
 
             // Check if the whitelist file exists on load, if not then create it.
             if (!File.Exists(WhitelistFile))
@@ -144,7 +152,7 @@ namespace Zintom.GameOptimizer.Assistants
                 }
             }
 
-            return false;
+            return _gameProcessIdentifierFallback?.IsGame(process) ?? false;
         }
 
         public bool IsWhitelisted(Process process)
@@ -160,7 +168,12 @@ namespace Zintom.GameOptimizer.Assistants
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Refresh() => GetAllProcessesAndTypesFromWhitelistFile();
+        public void Refresh()
+        {
+            GetAllProcessesAndTypesFromWhitelistFile();
+
+            // Refresh the fallback source as well.
+            _gameProcessIdentifierFallback?.Refresh();
+        }
     }
 }

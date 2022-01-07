@@ -13,11 +13,15 @@ namespace Zintom.GameOptimizer.Assistants
     internal class ExplicitWhitelistedProcessIdentifier : IWhitelistedProcessIdentifierSource
     {
         internal const string WhitelistFile = "process_whitelist.txt";
+
         private const string FileComment = "#";
 
-        readonly IOutputProvider? _outputDisplayer;
+        private readonly IOutputProvider? _outputDisplayer;
 
-        List<string> _whiteListedProcessNames;
+        /// <summary>
+        /// Holds the list of whitelisted process names as of the last <see cref="Refresh"/>.
+        /// </summary>
+        private List<string> _whiteListedProcessNames;
 
         internal ExplicitWhitelistedProcessIdentifier(IOutputProvider? outputDisplayer = null)
         {

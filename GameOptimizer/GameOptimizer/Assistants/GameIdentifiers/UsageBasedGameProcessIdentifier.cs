@@ -6,17 +6,7 @@ using System.Threading;
 
 namespace Zintom.GameOptimizer.Assistants
 {
-    internal interface IGameIdentifierSource
-    {
-        /// <summary>
-        /// Determines whether the given <paramref name="process"/> is a game or not.
-        /// </summary>
-        /// <param name="process"></param>
-        /// <returns><see langword="true"/> if the given <paramref name="process"/> is believed to be a game, or <see langword="false"/> otherwise.</returns>
-        bool IsGame(Process process);
-    }
-
-    public class UsageBasedGameIdentifierSource : IGameIdentifierSource
+    internal class UsageBasedGameProcessIdentifier : IGameProcessIdentifierSource
     {
 
         /// <summary>

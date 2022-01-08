@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Zintom.GameOptimizer.Assistants
+namespace Zintom.GameOptimizer.ProcessIdentifiers
 {
     internal interface IWhitelistedProcessIdentifierSource
     {

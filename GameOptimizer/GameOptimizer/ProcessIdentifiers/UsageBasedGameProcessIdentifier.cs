@@ -4,8 +4,11 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace Zintom.GameOptimizer.Assistants
+namespace Zintom.GameOptimizer.ProcessIdentifiers
 {
+    /// <summary>
+    /// Identifies if a <see cref="Process"/>
+    /// </summary>
     internal class UsageBasedGameProcessIdentifier : IGameProcessIdentifierSource
     {
 

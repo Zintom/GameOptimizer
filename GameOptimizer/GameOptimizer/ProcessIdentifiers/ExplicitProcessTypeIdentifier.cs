@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
-namespace Zintom.GameOptimizer.Assistants
+namespace Zintom.GameOptimizer.ProcessIdentifiers
 {
     /// <summary>
     /// Explicitly identifies whitlisted processes via the process whitelist configuration file.

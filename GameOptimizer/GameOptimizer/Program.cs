@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using Zintom.GameOptimizer.Assistants;
+using Zintom.GameOptimizer.ProcessIdentifiers;
 using Zintom.GameOptimizer.Menus;
 using Zintom.InteractiveShell;
 

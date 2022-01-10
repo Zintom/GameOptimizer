@@ -221,6 +221,16 @@ namespace Zintom.GameOptimizer
         private readonly int _optimizeAffinityMinimumCores = 4;
         private readonly nint _affinityAllCores = BitMask.SetBitRange(0, 0, Environment.ProcessorCount);
 
+        /// <summary>
+        /// As specified by <c>GetOptimimumAffinityMask(true)</c>.
+        /// </summary>
+        private readonly nint _affinityPriorityCores = GetOptimimumAffinityMask(true);
+
+        /// <summary>
+        /// As specified by <c>GetOptimimumAffinityMask(false)</c>.
+        /// </summary>
+        private readonly nint _affinityNonPriorityCores = GetOptimimumAffinityMask(false);
+
         private readonly Config? _config;
 
         private readonly object _optimizeLockObject = new();
@@ -374,13 +384,13 @@ namespace Zintom.GameOptimizer
                     nint newAffinity;
                     if (isGame)
                     {
-                        // If this is a game process then put it on the first 4 cores.
-                        newAffinity = BitMask.SetBitRange(0, 0, Environment.ProcessorCount - 2);
+                        // If this is a game process then put it on the priority cores
+                        newAffinity = _affinityPriorityCores;
                     }
                     else
                     {
-                        // Set the affinity to the last 2 cores because it is not a game.
-                        newAffinity = BitMask.SetBitRange(0, Environment.ProcessorCount - 2, Environment.ProcessorCount);
+                        // Because this is not a game, put the process on the non-priority cores.
+                        newAffinity = _affinityNonPriorityCores;
                     }
 
                     // Change the affinity, if successful increment the optimizationsRan by one.
@@ -551,6 +561,58 @@ namespace Zintom.GameOptimizer
             }
 
             return value;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="returnPriorityCores">Determines whether we should be giving you a mask for the priority cores, or for the non-priority cores.</param>
+        /// <returns></returns>
+        private static nint GetOptimimumAffinityMask(bool returnPriorityCores = true)
+        {
+            var procLayout = ProcessorLayoutInformation.GetCurrentProcessorLayout();
+
+            nint affinity = returnPriorityCores ? 0
+                                                : (nint)Convert.ToInt64("".PadRight(procLayout.PhysicalCores, '1'), 2);
+
+            // If this processor doesn't have core complexes or has only one complex
+            // we use a best guess on what cores a game process should be put on.
+            // e.g: For 4 cpus, put games on the first 3 cores. For 6 cpus, put games on the first 4 cores.
+            if (!procLayout.HasCoreComplexes ||
+                 procLayout.NumberOfCoreComplexes == 1)
+            {
+                // This CPU doesn't have core complexes
+                switch (procLayout.PhysicalCores)
+                {
+                    case 4:
+                        return BitMask.ModifyBitRange(affinity, 0, 3, returnPriorityCores);
+                    case 6:
+                        return BitMask.ModifyBitRange(affinity, 0, 4, returnPriorityCores);
+                    case 8:
+                        return BitMask.ModifyBitRange(affinity, 0, 6, returnPriorityCores);
+                    case 12:
+                        return BitMask.ModifyBitRange(affinity, 0, 10, returnPriorityCores);
+                    case 16:
+                        return BitMask.ModifyBitRange(affinity, 0, 12, returnPriorityCores);
+                    case 24:
+                        return BitMask.ModifyBitRange(affinity, 0, 20, returnPriorityCores);
+                    case 28:
+                        return BitMask.ModifyBitRange(affinity, 0, 20, returnPriorityCores);
+                    case 32:
+                        return BitMask.ModifyBitRange(affinity, 0, 24, returnPriorityCores);
+                    default:
+                        // If we don't have a preset then just show all cores as priority/non-priority.
+                        return BitMask.ModifyBitRange(affinity, 0, procLayout.PhysicalCores, returnPriorityCores);
+                }
+            }
+            else
+            {
+                // The logic behind this is that we put games on all but the last core complex.
+                // e.g: For 2 core complexes, we put games on the first core complex,
+                //      for 4 complexes, we put games on the first 3 core complexes.
+
+                return BitMask.ModifyBitRange(affinity, 0, procLayout.CoresPerCoreComplex * (procLayout.NumberOfCoreComplexes - 1), returnPriorityCores);
+            }
         }
 
         /// <summary>

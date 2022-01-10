@@ -22,14 +22,16 @@ namespace Zintom.GameOptimizer
     internal class ProcessorLayoutInformation
     {
 
-        private static Dictionary<string, ProcessorLayout> _processorNameToLayout = new();
+        private static readonly Dictionary<string, ProcessorLayout> _processorNameToLayout = new();
+
+        private static string? _currentProcessorNameCache = null;
 
         //
         // The processor name should be the one given by the WMI under 'Name', this is also the name that Task Manager uses.
         //
         static ProcessorLayoutInformation()
         {
-            _processorNameToLayout.Add("", new ProcessorLayout(Environment.ProcessorCount, Environment.ProcessorCount));
+            _processorNameToLayout.Add("", new ProcessorLayout(Environment.ProcessorCount, 0));
 
             // Add more processors here
             _processorNameToLayout.Add("AMD Ryzen 5 1600 Six-Core Processor", new ProcessorLayout(6, 3));
@@ -42,6 +44,11 @@ namespace Zintom.GameOptimizer
         /// <returns></returns>
         internal static ProcessorLayout GetCurrentProcessorLayout()
         {
+            if (_currentProcessorNameCache != null)
+            {
+                return _processorNameToLayout[_currentProcessorNameCache];
+            }
+
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
             string processorName = "";
             foreach (var i in searcher.Get())
@@ -54,8 +61,17 @@ namespace Zintom.GameOptimizer
                 catch { }
             }
 
+            // Sometimes the WMI returns the name with whitespace chars, so trim it.
+            _currentProcessorNameCache = processorName.Trim();
+
+            // If we don't have a layout for this CPU then use the default.
+            if (!_processorNameToLayout.ContainsKey(_currentProcessorNameCache))
+            {
+                _currentProcessorNameCache = "";
+            }
+
             // Return the appropriate ProcessorLayout for the given processor name.
-            return _processorNameToLayout[processorName];
+            return _processorNameToLayout[_currentProcessorNameCache];
         }
 
         internal struct ProcessorLayout
@@ -88,6 +104,11 @@ namespace Zintom.GameOptimizer
                 get => CoresPerCoreComplex != 0;
             }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="physicalCores"></param>
+            /// <param name="coresPerCCX">A value of '0' indicates this processor does not have Core Complexes.</param>
             internal ProcessorLayout(int physicalCores, int coresPerCCX = 0)
             {
                 PhysicalCores = physicalCores;

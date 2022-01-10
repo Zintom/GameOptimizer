@@ -13,7 +13,7 @@ namespace Zintom.GameOptimizer
         public static string AppName = "Zintom's Game Optimizer";
         internal const string ConfigFile = "config.json";
 
-        const int _optimizeWaitTimeMillis = 5000;
+        const int _optimizeWaitTimeMillis = 1000;
 
         private static ConsoleColor _defaultBackColor;
         private static ConsoleColor _defaultForeColor;

@@ -218,7 +218,6 @@ namespace Zintom.GameOptimizer
 
         private OptimizeConditions _flagsUsedForOptimize = OptimizeConditions.None;
 
-        private readonly int _optimizeAffinityMinimumCores = 4;
         private readonly nint _affinityAllCores = BitMask.SetBitRange(0, 0, Environment.ProcessorCount);
 
         /// <summary>
@@ -295,9 +294,6 @@ namespace Zintom.GameOptimizer
 
             if (flags.HasFlag(OptimizeConditions.StreamerMode) && flags.HasFlag(OptimizeConditions.OptimizeAffinity))
                 _outputProvider?.OutputError($"Flag conflict! {OptimizeConditions.StreamerMode} overrides {OptimizeConditions.OptimizeAffinity}.");
-
-            if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount < _optimizeAffinityMinimumCores)
-                _outputProvider?.OutputHighlight($"{OptimizeConditions.OptimizeAffinity} flag is not applied on machines with less than {_optimizeAffinityMinimumCores}.");
             #endregion
 
             // Clear the restore_state file
@@ -377,9 +373,7 @@ namespace Zintom.GameOptimizer
                     }
                 }
 
-                if (process.ProcessName != "svchost" &&
-                    flags.HasFlag(OptimizeConditions.OptimizeAffinity) &&
-                    Environment.ProcessorCount >= _optimizeAffinityMinimumCores)
+                if (flags.HasFlag(OptimizeConditions.OptimizeAffinity))
                 {
                     nint newAffinity;
                     if (isGame)

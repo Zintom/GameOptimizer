@@ -238,7 +238,7 @@ namespace Zintom.GameOptimizer
         private readonly IGameProcessIdentifierSource _gameProcessIdentifier;
 
         /// <summary>
-        /// <b>true</b> if optimization has been run. Returns to <b>false</b> when <see cref="Restore"/> is ran.
+        /// <see langword="true"/> if optimization has been run. Returns to <see langword="false"/> when <see cref="Restore"/> is ran.
         /// </summary>
         internal bool IsOptimized { get; private set; }
         /// <summary>

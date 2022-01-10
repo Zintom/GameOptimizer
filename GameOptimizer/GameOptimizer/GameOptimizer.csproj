@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <RootNamespace>Zintom.GameOptimizer</RootNamespace>
     <Nullable>enable</Nullable>
     <NeutralLanguage>en</NeutralLanguage>
-    <Version>1.3.1</Version>
-    <AssemblyVersion>1.3.1</AssemblyVersion>
-    <FileVersion>1.3.1.0</FileVersion>
+    <Version>1.4</Version>
+    <AssemblyVersion>1.4</AssemblyVersion>
+    <FileVersion>1.4.0.0</FileVersion>
     <Authors>Tom Zsinko</Authors>
     <Company>Zintom</Company>
     <Description>Zintoms Game Optimizer boosts gaming performance by limiting the 'priority' of other processes and optionally limiting how many CPU cores they have access to (processor 'Affinity').</Description>
@@ -16,6 +16,8 @@
     <PackageId>ZintomsGameOptimizer</PackageId>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <PackageReleaseNotes></PackageReleaseNotes>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

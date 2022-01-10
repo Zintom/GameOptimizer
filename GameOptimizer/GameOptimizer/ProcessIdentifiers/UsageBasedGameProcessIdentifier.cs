@@ -7,7 +7,7 @@ using System.Threading;
 namespace Zintom.GameOptimizer.ProcessIdentifiers
 {
     /// <summary>
-    /// Identifies if a <see cref="Process"/>
+    /// Identifies if a <see cref="Process"/> is considers a 'Game' or not, using stats provided by the GPU Performance Counter.
     /// </summary>
     internal class UsageBasedGameProcessIdentifier : IGameProcessIdentifierSource
     {

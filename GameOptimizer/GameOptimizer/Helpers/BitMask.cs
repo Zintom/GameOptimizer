@@ -83,7 +83,7 @@ namespace Zintom.GameOptimizer
         /// <param name="setBits">Use <see langword="true"/> to set the range of bits, or <see langword="false"/> to unset them.</param>
         internal static nint ModifyBitRange(nint val, int startIndex, int count, bool setBits)
         {
-            if (startIndex < 0) throw new ArgumentOutOfRangeException($"The {nameof(startIndex)} must be positive.");
+            if (startIndex < 0) throw new ArgumentOutOfRangeException(nameof(startIndex), $"The {nameof(startIndex)} must be positive.");
 
             // The max number of bits in an uIntPtr (nuint)
             int nativeUintBitCount = Convert.ToString((nint)nuint.MaxValue, 2).Length;

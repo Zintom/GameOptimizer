@@ -577,28 +577,19 @@ namespace Zintom.GameOptimizer
                  procLayout.NumberOfCoreComplexes == 1)
             {
                 // This CPU doesn't have core complexes
-                switch (procLayout.PhysicalCores)
+                return procLayout.PhysicalCores switch
                 {
-                    case 4:
-                        return BitMask.ModifyBitRange(affinity, 0, 3, returnPriorityCores);
-                    case 6:
-                        return BitMask.ModifyBitRange(affinity, 0, 4, returnPriorityCores);
-                    case 8:
-                        return BitMask.ModifyBitRange(affinity, 0, 6, returnPriorityCores);
-                    case 12:
-                        return BitMask.ModifyBitRange(affinity, 0, 10, returnPriorityCores);
-                    case 16:
-                        return BitMask.ModifyBitRange(affinity, 0, 12, returnPriorityCores);
-                    case 24:
-                        return BitMask.ModifyBitRange(affinity, 0, 20, returnPriorityCores);
-                    case 28:
-                        return BitMask.ModifyBitRange(affinity, 0, 20, returnPriorityCores);
-                    case 32:
-                        return BitMask.ModifyBitRange(affinity, 0, 24, returnPriorityCores);
-                    default:
-                        // If we don't have a preset then just show all cores as priority/non-priority.
-                        return BitMask.ModifyBitRange(affinity, 0, procLayout.PhysicalCores, returnPriorityCores);
-                }
+                    2 => BitMask.ModifyBitRange(affinity, 0, 1, returnPriorityCores),
+                    4 => BitMask.ModifyBitRange(affinity, 0, 3, returnPriorityCores),
+                    6 => BitMask.ModifyBitRange(affinity, 0, 4, returnPriorityCores),
+                    8 => BitMask.ModifyBitRange(affinity, 0, 6, returnPriorityCores),
+                    12 => BitMask.ModifyBitRange(affinity, 0, 10, returnPriorityCores),
+                    16 => BitMask.ModifyBitRange(affinity, 0, 12, returnPriorityCores),
+                    24 => BitMask.ModifyBitRange(affinity, 0, 20, returnPriorityCores),
+                    28 => BitMask.ModifyBitRange(affinity, 0, 20, returnPriorityCores),
+                    32 => BitMask.ModifyBitRange(affinity, 0, 24, returnPriorityCores),
+                    _ => BitMask.ModifyBitRange(affinity, 0, procLayout.PhysicalCores, returnPriorityCores) // If we don't have a preset then just show all cores as priority/non-priority.
+                };
             }
             else
             {

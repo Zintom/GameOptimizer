@@ -4,19 +4,12 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace Zintom.GameOptimizer
+namespace Zintom.GameOptimizer.ProcessIdentifiers
 {
-    internal interface IGameIdentifierSource
-    {
-        /// <summary>
-        /// Determines whether the given <paramref name="process"/> is a game or not.
-        /// </summary>
-        /// <param name="process"></param>
-        /// <returns><see langword="true"/> if the given <paramref name="process"/> is believed to be a game, or <see langword="false"/> otherwise.</returns>
-        bool IsGame(Process process);
-    }
-
-    public class UsageBasedGameIdentifierSource : IGameIdentifierSource
+    /// <summary>
+    /// Identifies if a <see cref="Process"/>
+    /// </summary>
+    internal class UsageBasedGameProcessIdentifier : IGameProcessIdentifierSource
     {
 
         /// <summary>
@@ -200,6 +193,8 @@ namespace Zintom.GameOptimizer
 
             return false;
         }
+
+        public void Refresh() { }
 
         [DebuggerDisplay("PID = {ProcessID}, GPU Usage = {GPU_Usage}")]
         /// <summary>

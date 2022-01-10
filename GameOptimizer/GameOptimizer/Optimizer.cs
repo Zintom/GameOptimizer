@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Zintom.GameOptimizer.ProcessIdentifiers;
 using Zintom.StorageFacility;
 
 namespace Zintom.GameOptimizer
@@ -25,16 +26,17 @@ namespace Zintom.GameOptimizer
         /// </summary>
         NoHide = 2,
         /// <summary>
-        /// The optimizer should boost each priority process to <see cref="ProcessPriorityClass.AboveNormal"/> rather than leaving it at <see cref="ProcessPriorityClass.Normal"/>.
+        /// The optimizer should boost each whitelisted process to <see cref="ProcessPriorityClass.AboveNormal"/> rather than leaving it at <see cref="ProcessPriorityClass.Normal"/>.
         /// </summary>
         BoostPriorities = 4,
         /// <summary>
-        /// The optimizer should not de-prioritize 'non-priority' proccesses.
+        /// The optimizer should not de-prioritize 'non-whitelisted' proccesses.
         /// </summary>
         IgnoreOrdinaryProcesses = 8,
         /// <summary>
-        /// The optimizer should try to adjust the <see cref="Process.ProcessorAffinity"/> of non-game specific processes.
+        /// Try to optimize the <see cref="Process.ProcessorAffinity"/> of non-game specific processes.
         /// </summary>
+        /// <remarks>Whitelisted processes are not immune to this flag, only games are.</remarks>
         OptimizeAffinity = 16,
         /// <summary>
         /// The optimizer will try to put all '<c><see cref="Config.StreamerSpecificExecutables"/></c>' on the cores specified by '<c><see cref="Config.LimitStreamerSpecificExecutablesAffinity"/></c>',
@@ -216,44 +218,41 @@ namespace Zintom.GameOptimizer
 
         private OptimizeConditions _flagsUsedForOptimize = OptimizeConditions.None;
 
-        private readonly int _optimizeAffinityMinimumCores = 4;
         private readonly nint _affinityAllCores = BitMask.SetBitRange(0, 0, Environment.ProcessorCount);
+
+        /// <summary>
+        /// As specified by <c>GetOptimimumAffinityMask(true)</c>.
+        /// </summary>
+        private readonly nint _affinityPriorityCores = GetOptimimumAffinityMask(true);
+
+        /// <summary>
+        /// As specified by <c>GetOptimimumAffinityMask(false)</c>.
+        /// </summary>
+        private readonly nint _affinityNonPriorityCores = GetOptimimumAffinityMask(false);
 
         private readonly Config? _config;
 
-        private readonly object _whitelistLockObject = new object();
-        private IReadOnlyList<string> _whitelistedProcessNames;
+        private readonly object _optimizeLockObject = new();
 
-        /// <summary>
-        /// Gets or sets the whitelisted process names list.
-        /// </summary>
-        public IReadOnlyList<string> WhitelistedProcessNames
-        {
-            get => _whitelistedProcessNames;
-            set
-            {
-                lock (_whitelistLockObject)
-                {
-                    _whitelistedProcessNames = value;
-                }
-            }
-        }
+        private readonly IWhitelistedProcessIdentifierSource _whitelistedProcessIdentifier;
+        private readonly IGameProcessIdentifierSource _gameProcessIdentifier;
 
         /// <summary>
         /// <b>true</b> if optimization has been run. Returns to <b>false</b> when <see cref="Restore"/> is ran.
         /// </summary>
-        public bool IsOptimized { get; private set; }
+        internal bool IsOptimized { get; private set; }
         /// <summary>
         /// Whether the optimizer should display errors when it encounters them.
         /// </summary>
-        public bool ShowErrorCodes { get; set; }
+        internal bool ShowErrorCodes { get; set; }
 
         /// <param name="outputProvider">If not <b>null</b>, the optimizer will use this to output messages/problems or errors.</param>
-        internal Optimizer(IReadOnlyList<string> whitelistedProcessNames, Config? config = null, IOutputProvider? outputProvider = null)
+        internal Optimizer(IWhitelistedProcessIdentifierSource whitelistedProcessIdentifier, IGameProcessIdentifierSource gameProcessIdentifier, Config? config = null, IOutputProvider? outputProvider = null)
         {
-            _whitelistedProcessNames = whitelistedProcessNames;
-            _outputProvider = outputProvider;
-            _config = config;
+            this._whitelistedProcessIdentifier = whitelistedProcessIdentifier;
+            this._gameProcessIdentifier = gameProcessIdentifier;
+            this._outputProvider = outputProvider;
+            this._config = config;
 
             _restoreStateStorage = Storage.GetStorage(RestoreStateFile);
 
@@ -275,12 +274,13 @@ namespace Zintom.GameOptimizer
         /// Runs the optimizer with the given <paramref name="flags"/>.
         /// </summary>
         /// <returns>The number of optimizations ran.</returns>
-        public int Optimize(OptimizeConditions flags = OptimizeConditions.None)
+        internal int Optimize(OptimizeConditions flags = OptimizeConditions.None)
         {
             if (IsOptimized) throw new InvalidOperationException("Cannot optimize whilst already optimized, please Restore first.");
             IsOptimized = true;
 
-            IGameIdentifierSource gameIdentifier = new UsageBasedGameIdentifierSource();
+            // Lock so that the optimizer cannot be ran twice at the same time.
+            Monitor.Enter(_optimizeLockObject);
 
             _flagsUsedForOptimize = flags;
 
@@ -294,17 +294,12 @@ namespace Zintom.GameOptimizer
 
             if (flags.HasFlag(OptimizeConditions.StreamerMode) && flags.HasFlag(OptimizeConditions.OptimizeAffinity))
                 _outputProvider?.OutputError($"Flag conflict! {OptimizeConditions.StreamerMode} overrides {OptimizeConditions.OptimizeAffinity}.");
-
-            if (flags.HasFlag(OptimizeConditions.OptimizeAffinity) && Environment.ProcessorCount < _optimizeAffinityMinimumCores)
-                _outputProvider?.OutputHighlight($"{OptimizeConditions.OptimizeAffinity} flag is not applied on machines with less than {_optimizeAffinityMinimumCores}.");
             #endregion
-
-            // Lock on the process whitelist as we do not want it to be modified
-            // whilst we are looping.
-            Monitor.Enter(_whitelistLockObject);
 
             // Clear the restore_state file
             _restoreStateStorage.Edit().Clear(true);
+
+            RefreshProcessIdentifiers();
 
             Process[] currentProcesses = Process.GetProcesses();
 
@@ -321,17 +316,10 @@ namespace Zintom.GameOptimizer
                     continue;
                 }
 
-                bool isWhitelisted = false;
-                foreach (var whitelistedProcess in _whitelistedProcessNames)
-                {
-                    if (process.ProcessName.ToLower() == whitelistedProcess.ToLower())
-                    {
-                        isWhitelisted = true;
-                        break;
-                    }
-                }
+                bool isGame = _gameProcessIdentifier.IsGame(process);
 
-                bool isGame = gameIdentifier.IsGame(process);
+                // Games are considers whitelisted by default.
+                bool isWhitelisted = isGame || _whitelistedProcessIdentifier.IsWhitelisted(process);
 
                 if (isWhitelisted && flags.HasFlag(OptimizeConditions.BoostPriorities))
                 {
@@ -386,19 +374,18 @@ namespace Zintom.GameOptimizer
                 }
 
                 if (process.ProcessName != "svchost" &&
-                    flags.HasFlag(OptimizeConditions.OptimizeAffinity) &&
-                    Environment.ProcessorCount >= _optimizeAffinityMinimumCores)
+                    flags.HasFlag(OptimizeConditions.OptimizeAffinity))
                 {
                     nint newAffinity;
                     if (isGame)
                     {
-                        // If this is a game process then put it on the first 4 cores.
-                        newAffinity = BitMask.SetBitRange(0, 0, Environment.ProcessorCount - 2);
+                        // If this is a game process then put it on the priority cores
+                        newAffinity = _affinityPriorityCores;
                     }
                     else
                     {
-                        // Set the affinity to the last 2 cores because it is not a game.
-                        newAffinity = BitMask.SetBitRange(0, Environment.ProcessorCount - 2, Environment.ProcessorCount);
+                        // Because this is not a game, put the process on the non-priority cores.
+                        newAffinity = _affinityNonPriorityCores;
                     }
 
                     // Change the affinity, if successful increment the optimizationsRan by one.
@@ -409,17 +396,35 @@ namespace Zintom.GameOptimizer
 
             _restoreStateStorage.Edit().Commit();
 
-            // Release the whitelist so that it can be modified.
-            Monitor.Exit(_whitelistLockObject);
+            // Release the lock to allow this method to run again.
+            Monitor.Exit(_optimizeLockObject);
 
             return optimizationsRan;
+        }
+
+        /// <summary>
+        /// Calls refresh on the <see cref="_whitelistedProcessIdentifier"/> and <see cref="_gameProcessIdentifier"/>.
+        /// </summary>
+        /// <remarks>If both the identifiers are the same object, <c>Refresh</c> is only called once.</remarks>
+        private void RefreshProcessIdentifiers()
+        {
+            if (_whitelistedProcessIdentifier.Equals(_gameProcessIdentifier))
+            {
+                _whitelistedProcessIdentifier.Refresh();
+            }
+            else
+            {
+                // Refresh the identifiers seperately as they are not the same object.
+                _whitelistedProcessIdentifier.Refresh();
+                _gameProcessIdentifier.Refresh();
+            }
         }
 
         /// <summary>
         /// Restores all changes made to active processes by the `Optimize` method, this includes their Priority and Affinity.
         /// </summary>
         /// <returns>The number of restore operations completed.</returns>
-        public int Restore()
+        internal int Restore()
         {
             if (_flagsUsedForOptimize.HasFlag(OptimizeConditions.KillExplorerExe))
                 Process.Start(Environment.SystemDirectory + "\\..\\explorer.exe");
@@ -488,7 +493,7 @@ namespace Zintom.GameOptimizer
         /// Forces all active processes to <see cref="ProcessPriorityClass.Normal"/> and All Core affinity.
         /// </summary>
         /// <returns>The number of processes affected by the force restore.</returns>
-        public int ForceRestoreToNormal()
+        internal int ForceRestoreToNormal()
         {
             Process[] processes = Process.GetProcesses();
 
@@ -551,6 +556,58 @@ namespace Zintom.GameOptimizer
             }
 
             return value;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="returnPriorityCores">Determines whether we should be giving you a mask for the priority cores, or for the non-priority cores.</param>
+        /// <returns></returns>
+        private static nint GetOptimimumAffinityMask(bool returnPriorityCores = true)
+        {
+            var procLayout = ProcessorLayoutInformation.GetCurrentProcessorLayout();
+
+            nint affinity = returnPriorityCores ? 0
+                                                : (nint)Convert.ToInt64("".PadRight(procLayout.PhysicalCores, '1'), 2);
+
+            // If this processor doesn't have core complexes or has only one complex
+            // we use a best guess on what cores a game process should be put on.
+            // e.g: For 4 cpus, put games on the first 3 cores. For 6 cpus, put games on the first 4 cores.
+            if (!procLayout.HasCoreComplexes ||
+                 procLayout.NumberOfCoreComplexes == 1)
+            {
+                // This CPU doesn't have core complexes
+                switch (procLayout.PhysicalCores)
+                {
+                    case 4:
+                        return BitMask.ModifyBitRange(affinity, 0, 3, returnPriorityCores);
+                    case 6:
+                        return BitMask.ModifyBitRange(affinity, 0, 4, returnPriorityCores);
+                    case 8:
+                        return BitMask.ModifyBitRange(affinity, 0, 6, returnPriorityCores);
+                    case 12:
+                        return BitMask.ModifyBitRange(affinity, 0, 10, returnPriorityCores);
+                    case 16:
+                        return BitMask.ModifyBitRange(affinity, 0, 12, returnPriorityCores);
+                    case 24:
+                        return BitMask.ModifyBitRange(affinity, 0, 20, returnPriorityCores);
+                    case 28:
+                        return BitMask.ModifyBitRange(affinity, 0, 20, returnPriorityCores);
+                    case 32:
+                        return BitMask.ModifyBitRange(affinity, 0, 24, returnPriorityCores);
+                    default:
+                        // If we don't have a preset then just show all cores as priority/non-priority.
+                        return BitMask.ModifyBitRange(affinity, 0, procLayout.PhysicalCores, returnPriorityCores);
+                }
+            }
+            else
+            {
+                // The logic behind this is that we put games on all but the last core complex.
+                // e.g: For 2 core complexes, we put games on the first core complex,
+                //      for 4 complexes, we put games on the first 3 core complexes.
+
+                return BitMask.ModifyBitRange(affinity, 0, procLayout.CoresPerCoreComplex * (procLayout.NumberOfCoreComplexes - 1), returnPriorityCores);
+            }
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Zintom.GameOptimizer.ProcessIdentifiers;
 using Zintom.StorageFacility;
 
 namespace Zintom.GameOptimizer.Menus
@@ -84,7 +85,7 @@ namespace Zintom.GameOptimizer.Menus
                         TipNumber = 0;
                         break;
                     case 3:
-                        Program.OpenWithDefaultProgram(WhitelistReader.WhitelistFile);
+                        Program.OpenWithDefaultProgram(ExplicitProcessTypeIdentifier.WhitelistFile);
                         break;
                     default:
                         return;

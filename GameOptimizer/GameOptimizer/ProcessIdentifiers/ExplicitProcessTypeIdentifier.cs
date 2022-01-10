@@ -6,7 +6,7 @@ using System.Reflection;
 namespace Zintom.GameOptimizer.ProcessIdentifiers
 {
     /// <summary>
-    /// Explicitly identifies whitlisted processes via the process whitelist configuration file.
+    /// Explicitly identifies whitlisted and game processes via the process whitelist configuration file.
     /// </summary>
     /// <remarks>Implements both <see cref="IWhitelistedProcessIdentifierSource"/> and <see cref="IGameProcessIdentifierSource"/>.</remarks>
     internal class ExplicitProcessTypeIdentifier : IWhitelistedProcessIdentifierSource, IGameProcessIdentifierSource

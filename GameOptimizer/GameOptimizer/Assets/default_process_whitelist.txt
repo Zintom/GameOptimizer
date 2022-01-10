@@ -1,10 +1,14 @@
-# Put processes you don't want affected by the optimizer here.
-# 
-# Text inside a <> tag is treated as a flag to indicate the type of processes that proceed it.
 #
-# <Whitelisted> - Processes after this tag should be considered whitelisted from the 'priority' limiter.
-# <Games> - Processes after this tag should be considered a game and will benefit from affinity optimizations, processes
-# with under the <Games> tag are also treated as <Whitelisted>
+# Put processes you don't want affected by the optimizer here.
+#
+# Text after a '#' character is considered a comment, and won't be interpreted by the program.
+# 
+# Text inside a '<>' tag is treated as a flag to indicate the type of processes that proceed it, for example:
+#
+# - <Whitelisted> - Processes after this tag should not be affected by the 'priority limiter'.
+# - <Games> - Processes after this tag should be considered a game and should benefit from affinity optimization, processes
+# under the <Games> tag are also treated as <Whitelisted> and will not be affected by the 'priority limiter' either.
+#
 
 <Whitelisted>
 

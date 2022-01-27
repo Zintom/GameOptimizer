@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Zintom.GameOptimizer.Optimization;
 
 namespace Zintom.GameOptimizer.ProcessIdentifiers
 {
@@ -24,7 +25,7 @@ namespace Zintom.GameOptimizer.ProcessIdentifiers
         /// </summary>
         private Dictionary<int, float> _gpuUsageStatsCache = new();
 
-        public bool IsGame(Process process)
+        public bool IsGame(IProcess process)
         {
             if (DateTimeOffset.Now.ToUnixTimeSeconds() - _lastTimeGpuStatsCalculated > 30)
             {

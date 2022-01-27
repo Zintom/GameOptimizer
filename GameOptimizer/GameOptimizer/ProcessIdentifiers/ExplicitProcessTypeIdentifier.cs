@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using Zintom.GameOptimizer.Optimization;
 
 namespace Zintom.GameOptimizer.ProcessIdentifiers
 {
@@ -142,7 +143,7 @@ namespace Zintom.GameOptimizer.ProcessIdentifiers
             }
         }
 
-        public bool IsGame(Process process)
+        public bool IsGame(IProcess process)
         {
             for (int i = 0; i < _gameProcessNames.Count; i++)
             {
@@ -155,7 +156,7 @@ namespace Zintom.GameOptimizer.ProcessIdentifiers
             return _gameProcessIdentifierFallback?.IsGame(process) ?? false;
         }
 
-        public bool IsWhitelisted(Process process)
+        public bool IsWhitelisted(IProcess process)
         {
             for (int i = 0; i < _whiteListedProcessNames.Count; i++)
             {

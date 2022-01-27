@@ -92,5 +92,53 @@ namespace Tests
 
             Assert.IsTrue((ulong)value == 0b_1111_1111_1111_1111_1111_1111_1111_1111_0000_0000_0000_0000_1111_1111_1111_1111);
         }
+
+        [TestMethod]
+        public void BinaryComplementNoLeadingZerosTrue()
+        {
+            // These strings complement each other if the leading zeros are ignored.
+            string binaryStringA = "111000";
+            string binaryStringB = "000111";
+
+            // We need to test that the BinaryComplement function gives the same result with the parameters swapped, so we test both combinations.
+            Assert.IsTrue(BitMask.LogicalBinaryComplement(binaryStringA, binaryStringB));
+            Assert.IsTrue(BitMask.LogicalBinaryComplement(binaryStringB, binaryStringA));
+        }
+
+        [TestMethod]
+        public void BinaryComplementNoLeadingZerosFalse()
+        {
+            // These strings do not complement each other in binary.
+            string binaryStringA = "100000";
+            string binaryStringB = "000111";
+
+            // We need to test that the BinaryComplement function gives the same result with the parameters swapped, so we test both combinations.
+            Assert.IsFalse(BitMask.LogicalBinaryComplement(binaryStringA, binaryStringB));
+            Assert.IsFalse(BitMask.LogicalBinaryComplement(binaryStringB, binaryStringA));
+        }
+
+        [TestMethod]
+        public void BinaryComplementWithLeadingZerosTrue()
+        {
+            // These strings complement each other if the leading zeros are ignored.
+            string binaryStringA = "000111000";
+            string binaryStringB = "000000111";
+
+            // We need to test that the BinaryComplement function gives the same result with the parameters swapped, so we test both combinations.
+            Assert.IsTrue(BitMask.LogicalBinaryComplement(binaryStringA, binaryStringB));
+            Assert.IsTrue(BitMask.LogicalBinaryComplement(binaryStringB, binaryStringA));
+        }
+
+        [TestMethod]
+        public void BinaryComplementWithLeadingZerosFalse()
+        {
+            // These strings do not complement each other in binary.
+            string binaryStringA = "000100000";
+            string binaryStringB = "000000111";
+
+            // We need to test that the BinaryComplement function gives the same result with the parameters swapped, so we test both combinations.
+            Assert.IsFalse(BitMask.LogicalBinaryComplement(binaryStringA, binaryStringB));
+            Assert.IsFalse(BitMask.LogicalBinaryComplement(binaryStringB, binaryStringA));
+        }
     }
 }

@@ -102,5 +102,65 @@ namespace Zintom.GameOptimizer
             return val;
         }
 
+        /// <summary>
+        /// Determines whether two binary strings are the logical bitwise complement of each other.
+        /// </summary>
+        /// <remarks>
+        /// The binary strings must be the same length as this does a bit-for-bit comparison.
+        /// Leading zeros that exist on both strings are trimmed.
+        /// </remarks>
+        internal static bool LogicalBinaryComplement(ReadOnlySpan<char> binaryString1, ReadOnlySpan<char> binaryString2)
+        {
+            // Both the binary strings must be of the same length to compare bit for bit.
+            if (binaryString1.Length != binaryString2.Length) throw new Exception("Binary strings were not the same length.");
+
+            // Work out the number of leading zeros for each string.
+            int string1LeadingZeros = 0;
+            for (int i = 0; i < binaryString1.Length; i++)
+            {
+                if (binaryString1[i] != '0') break;
+                string1LeadingZeros++;
+            }
+
+            int string2LeadingZeros = 0;
+            for (int i = 0; i < binaryString2.Length; i++)
+            {
+                if (binaryString2[i] != '0') break;
+                string2LeadingZeros++;
+            }
+
+            // We want to trim any leading zeros that exist in BOTH strings.
+            // So we compare the number of leading zeros in each string,
+            // the string with the least leading zeros governs where each string will be trimmed.
+            // i.e if string one is 000111 and string two is 001111, string two beats string one and the trim is performed at index 2.
+            int leadingZerosSliceIndex;
+            if (string1LeadingZeros <= string2LeadingZeros)
+            {
+                leadingZerosSliceIndex = string1LeadingZeros;
+            }
+            else
+            {
+                leadingZerosSliceIndex = string2LeadingZeros;
+            }
+
+            binaryString1 = binaryString1[leadingZerosSliceIndex..];
+            binaryString2 = binaryString2[leadingZerosSliceIndex..];
+
+            for (int i = 0; i < binaryString1.Length; i++)
+            {
+                // Ensure that each character we are checking is a '0' or '1'.
+                bool is1Digit = int.TryParse(binaryString1.Slice(i, 1), System.Globalization.NumberStyles.None, null, out int digit1);
+                bool is2Digit = int.TryParse(binaryString2.Slice(i, 1), System.Globalization.NumberStyles.None, null, out int digit2);
+
+                if (!is1Digit || !is2Digit) throw new Exception("The strings given must consist of \"0\"'s or \"1\"'s only.");
+
+                // We cannot use bitwise complement as it inverts the full width of the number, not just the first bit.
+                // The solution below does the same thing as the bitwise complement check, however, it only checks the digit we are interested in.
+                // If the digits are the same then they are not a complement, so fail.
+                if (digit1 == digit2) return false;
+            }
+
+            return true;
+        }
     }
 }

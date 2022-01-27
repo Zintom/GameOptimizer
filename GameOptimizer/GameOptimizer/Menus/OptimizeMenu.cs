@@ -21,10 +21,10 @@ namespace Zintom.GameOptimizer.Menus
                             "Back"};
 
             string[] footerTexts = new string[] {
-                "Sets all non-whitelisted processes to 'Low' priority,      \nwhilst leaving whitelisted and game processes at 'Normal' priority.              \n                        ",
-                "Sets process priorities in the same way as option 1        \nalso optimizing the distribution of processes across all of your          \nsystem processing cores.",
+                "Sets all non-whitelisted/game processes to 'Low' priority  \nwhilst leaving whitelisted and game processes at 'Normal' priority.   \n                             ",
+                "Sets process priorities in the same way as option 1,       \nhowever it also optimizes the distribution of processes across all of \nyour system processing cores.",
                 //"Forces all 'streamer specific' processes onto the cpu cores\nspecified in the 'config.json' file, and forces all other processes onto the      \nremaining cores.       ",
-                "Go back to the previous menu.                           \n                                                                        \n                       "
+                "Go back to the previous menu.                              \n                                                                      \n                             "
             };
 
             gui.FallbackDisplayOptions.FooterVerticalPadding = 2;

@@ -16,14 +16,14 @@ namespace Zintom.GameOptimizer.Menus
         {
             gui.DrawTitle(Program.AppName, "Select an optimization method to execute.\n(Run this app as administrator for more boosting power!)", null, true);
             string[] quickCommands = new string[] { "1: Default optimization",
-                            "2: Default optimization plus Affinity optimization",
-                            "3: Streamer mode optimization",
+                            "2: Priority and Affinity optimization.",
+                            //"3: Streamer mode optimization",
                             "Back"};
 
             string[] footerTexts = new string[] {
-                "Sets all non-whitelisted processes to 'Low' priority,   \nwhilst leaving whitelisted processes at 'Normal' priority.              \n                       ",
-                "Manages process priorties in the same way as option 1   \nwhilst also restricting all non-whitelisted processes to use only       \nthe last two CPU cores.",
-                "Forces all 'streamer specific' processes onto the cores \nspecified in 'config.json' and forces all other processes onto the      \nremaining cores.       ",
+                "Sets all non-whitelisted processes to 'Low' priority,      \nwhilst leaving whitelisted and game processes at 'Normal' priority.              \n                        ",
+                "Sets process priorities in the same way as option 1        \nalso optimizing the distribution of processes across all of your          \nsystem processing cores.",
+                //"Forces all 'streamer specific' processes onto the cpu cores\nspecified in the 'config.json' file, and forces all other processes onto the      \nremaining cores.       ",
                 "Go back to the previous menu.                           \n                                                                        \n                       "
             };
 
@@ -44,9 +44,9 @@ namespace Zintom.GameOptimizer.Menus
                 case 1:
                     Program.Command_OptimizeWithFlags(baseOptimizeConditions | OptimizeConditions.OptimizeAffinity);
                     break;
-                case 2:
-                    Program.Command_OptimizeWithFlags(baseOptimizeConditions | OptimizeConditions.StreamerMode);
-                    break;
+                //case 2:
+                //    Program.Command_OptimizeWithFlags(baseOptimizeConditions | OptimizeConditions.StreamerMode);
+                //    break;
                 //case 3:
                 //    Program.Command_OptimizeWithFlags(OptimizeConditions.BoostPriorities | OptimizeConditions.IgnoreOrdinaryProcesses);
                 //    break;

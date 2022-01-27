@@ -74,7 +74,7 @@ namespace Zintom.GameOptimizer.Menus
                     "If enabled, any errors during optimization will be displayed.\n                      ",
                     "Enable/disable the tip of the day screen                     \nwhich shows on launch.",
                     "Reset the 'Tip of the day' back to #1.                       \n                      ",
-                    "The window should be automatically hidden after optimizations\nare run.              ",
+                    "If enabled, the window will be automatically hidden after    \noptimizations are run.",
                     "Opens the whitelist file in the default editor program.      \n                      ",
                     "Goes back to the previous menu.                              \n                      "
                 };

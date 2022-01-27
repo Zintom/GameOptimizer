@@ -346,13 +346,16 @@ namespace Zintom.GameOptimizer
                     process.ProcessName != "svchost" &&
                     _config != null &&
                     _config.LimitStreamerSpecificExecutablesAffinity != null &&
-                    _config.StreamerSpecificExecutables != null)
+                    _config.LimitStreamerSpecificExecutablesAffinity.Length != 0 &&
+                    _config.StreamerSpecificExecutables != null &&
+                    _config.StreamerSpecificExecutables.Length != 0)
                 {
                     nint newAffinity;
 
                     // If the process is a "stream specific executable" or isn't a whitelisted process, then force it onto specific cores.
                     if (_config.StreamerSpecificExecutables.AsSpan().Contains(process.ProcessName) ||
-                        isWhitelisted == false)
+                        isWhitelisted == false ||
+                        isGame == false)
                     {
                         newAffinity = GetAsAffinityMask(_config.LimitStreamerSpecificExecutablesAffinity, Environment.ProcessorCount);
                     }

@@ -22,6 +22,12 @@ namespace Zintom.GameOptimizer.Menus
             private set => _settings.Edit().PutValue(nameof(TOTDEnabled), value).Commit();
         }
 
+        public bool AutoHideWindow
+        {
+            get => _settings.Booleans.GetValue(nameof(AutoHideWindow), true);
+            private set => _settings.Edit().PutValue(nameof(AutoHideWindow), value).Commit();
+        }
+
         public int TipNumber
         {
             get => _settings.Integers.GetValue(nameof(TipNumber), 0);
@@ -60,6 +66,7 @@ namespace Zintom.GameOptimizer.Menus
                     "Display Errors: " + (DisplayErrors ? "On" : "Off"),
                     "Tip of the day: " + (TOTDEnabled ? "On" : "Off"),
                     $"Reset TOTD ({TipNumber + 1})",
+                    $"Auto-hide window: {(AutoHideWindow ? "On" : "Off")}",
                     "Edit whitelist file",
                     "Back"
                 };
@@ -67,6 +74,7 @@ namespace Zintom.GameOptimizer.Menus
                     "If enabled, any errors during optimization will be displayed.\n                      ",
                     "Enable/disable the tip of the day screen                     \nwhich shows on launch.",
                     "Reset the 'Tip of the day' back to #1.                       \n                      ",
+                    "The window should be automatically hidden after optimizations\nare run.              ",
                     "Opens the whitelist file in the default editor program.      \n                      ",
                     "Goes back to the previous menu.                              \n                      "
                 };
@@ -85,6 +93,9 @@ namespace Zintom.GameOptimizer.Menus
                         TipNumber = 0;
                         break;
                     case 3:
+                        AutoHideWindow = !AutoHideWindow;
+                        break;
+                    case 4:
                         Program.OpenWithDefaultProgram(ExplicitProcessTypeIdentifier.WhitelistFile);
                         break;
                     default:
@@ -102,6 +113,11 @@ namespace Zintom.GameOptimizer.Menus
         public bool DisplayErrors { get; }
 
         public bool TOTDEnabled { get; }
+
+        /// <summary>
+        /// Should the window be automatically hidden after optimizations are run.
+        /// </summary>
+        public bool AutoHideWindow { get; }
 
         /// <summary>
         /// The current tip for 'Tip of the day'.

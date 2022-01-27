@@ -5,6 +5,13 @@ namespace Zintom.GameOptimizer.Menus
     public class OptimizeMenu : IConsoleMenu
     {
 
+        private readonly ISettingsProvider _settingsProvider;
+
+        internal OptimizeMenu(ISettingsProvider settingsProvider)
+        {
+            _settingsProvider = settingsProvider;
+        }
+
         public void Run(InteractiveShell.InteractiveShell gui)
         {
             gui.DrawTitle(Program.AppName, "Select an optimization method to execute.\n(Run this app as administrator for more boosting power!)", null, true);
@@ -24,16 +31,21 @@ namespace Zintom.GameOptimizer.Menus
             gui.FallbackDisplayOptions.FooterForegroundColour = ConsoleColor.Cyan;
             int result = gui.DisplayMenu(quickCommands, footerTexts);
 
+            var baseOptimizeConditions = OptimizeConditions.None;
+
+            // Add any flags set by the ISettingsProvider
+            if (!_settingsProvider.AutoHideWindow) baseOptimizeConditions.SetFlag(OptimizeConditions.NoHide);
+
             switch (result)
             {
                 case 0:
-                    Program.Command_OptimizeWithFlags(OptimizeConditions.None);
+                    Program.Command_OptimizeWithFlags(baseOptimizeConditions);
                     break;
                 case 1:
-                    Program.Command_OptimizeWithFlags(OptimizeConditions.OptimizeAffinity);
+                    Program.Command_OptimizeWithFlags(baseOptimizeConditions | OptimizeConditions.OptimizeAffinity);
                     break;
                 case 2:
-                    Program.Command_OptimizeWithFlags(OptimizeConditions.StreamerMode);
+                    Program.Command_OptimizeWithFlags(baseOptimizeConditions | OptimizeConditions.StreamerMode);
                     break;
                 //case 3:
                 //    Program.Command_OptimizeWithFlags(OptimizeConditions.BoostPriorities | OptimizeConditions.IgnoreOrdinaryProcesses);

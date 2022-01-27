@@ -10,14 +10,14 @@ namespace Zintom.GameOptimizer.Menus
 
         public MainMenu()
         {
-            optimizeMenu = new OptimizeMenu();
-            commandMenu = new CommandMenu();
             optionsMenu = new OptionsMenu();
+            optimizeMenu = new OptimizeMenu(settingsProvider: optionsMenu);
+            commandMenu = new CommandMenu();
         }
 
         public void Run(InteractiveShell.InteractiveShell gui)
         {
-            TOTDMenu tOTDMenu = new TOTDMenu(optionsMenu);
+            TOTDMenu tOTDMenu = new TOTDMenu(settingsProvider: optionsMenu);
             tOTDMenu.Run(gui);
 
             int selectedOption = 0;

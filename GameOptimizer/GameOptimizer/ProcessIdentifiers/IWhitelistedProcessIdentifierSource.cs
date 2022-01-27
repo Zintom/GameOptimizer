@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Zintom.GameOptimizer.Optimization;
 
 namespace Zintom.GameOptimizer.ProcessIdentifiers
 {
@@ -9,7 +10,7 @@ namespace Zintom.GameOptimizer.ProcessIdentifiers
         /// </summary>
         /// <param name="process"></param>
         /// <returns><see langword="true"/> if the given <paramref name="process"/> is whitelisted, or <see langword="false"/> otherwise.</returns>
-        bool IsWhitelisted(Process process);
+        bool IsWhitelisted(IProcess process);
 
         /// <summary>
         /// Refreshes any internal state of the identifier.

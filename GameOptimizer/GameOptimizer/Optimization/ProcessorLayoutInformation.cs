@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Management;
 
-namespace Zintom.GameOptimizer
+namespace Zintom.GameOptimizer.Optimization
 {
 
     //

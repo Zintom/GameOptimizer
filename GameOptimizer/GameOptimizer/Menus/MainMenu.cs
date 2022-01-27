@@ -2,13 +2,13 @@
 
 namespace Zintom.GameOptimizer.Menus
 {
-    public class MainMenu : IConsoleMenu
+    internal class MainMenu : IConsoleMenu
     {
-        public readonly OptimizeMenu optimizeMenu;
-        public readonly CommandMenu commandMenu;
-        public readonly OptionsMenu optionsMenu;
+        private readonly OptimizeMenu optimizeMenu;
+        private readonly CommandMenu commandMenu;
+        private readonly OptionsMenu optionsMenu;
 
-        public MainMenu()
+        internal MainMenu()
         {
             optionsMenu = new OptionsMenu();
             optimizeMenu = new OptimizeMenu(settingsProvider: optionsMenu);

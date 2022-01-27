@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using Zintom.GameOptimizer.ProcessIdentifiers;
 using Zintom.GameOptimizer.Helpers;
+using Zintom.GameOptimizer.ProcessIdentifiers;
 using Zintom.InteractiveShell;
 
 namespace Zintom.GameOptimizer.Menus
@@ -87,7 +87,7 @@ namespace Zintom.GameOptimizer.Menus
         {
             if (string.IsNullOrEmpty(input)) return OptimizeConditions.None;
 
-            OptimizeConditions output = OptimizeConditions.None;
+            OptimizeConditions outputFlags = OptimizeConditions.None;
 
             string[] rawFlags = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
@@ -98,26 +98,31 @@ namespace Zintom.GameOptimizer.Menus
                 if (flag == "--" + OptimizeConditions.KillExplorerExe.ToString().ToLower() ||
                     flag == "-k")
                 {
-                    output.SetFlag(OptimizeConditions.KillExplorerExe);
+                    outputFlags.SetFlag(OptimizeConditions.KillExplorerExe);
                 }
                 else if (flag == "--" + OptimizeConditions.NoHide.ToString().ToLower() ||
                          flag == "-nh")
                 {
-                    output.SetFlag(OptimizeConditions.NoHide);
+                    outputFlags.SetFlag(OptimizeConditions.NoHide);
                 }
                 else if (flag == "--" + OptimizeConditions.BoostPriorities.ToString().ToLower() ||
                          flag == "-b")
                 {
-                    output.SetFlag(OptimizeConditions.BoostPriorities);
+                    outputFlags.SetFlag(OptimizeConditions.BoostPriorities);
                 }
                 else if (flag == "--" + OptimizeConditions.IgnoreOrdinaryProcesses.ToString().ToLower() ||
                          flag == "-i")
                 {
-                    output.SetFlag(OptimizeConditions.IgnoreOrdinaryProcesses);
+                    outputFlags.SetFlag(OptimizeConditions.IgnoreOrdinaryProcesses);
+                }
+                else if (flag == $"--{OptimizeConditions.StreamerMode}" ||
+                        flag == "-sm")
+                {
+                    outputFlags.SetFlag(OptimizeConditions.StreamerMode);
                 }
             }
 
-            return output;
+            return outputFlags;
         }
     }
 }

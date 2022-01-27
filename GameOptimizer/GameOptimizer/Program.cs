@@ -14,13 +14,12 @@ namespace Zintom.GameOptimizer
         public static string AppName = "Zintom's Game Optimizer";
         internal const string ConfigFile = "config.json";
 
-        const int _optimizeWaitTimeMillis = 1000;
-
         private static ConsoleColor _defaultBackColor;
         private static ConsoleColor _defaultForeColor;
 
         private static readonly IOutputProvider outputDisplayer = new CLIOutputDisplayer();
         public static Optimizer Optimizer { get; private set; } = default!;
+        private static Config _config;
 
         private static InteractiveShell.InteractiveShell _gui = default!;
 
@@ -38,11 +37,13 @@ namespace Zintom.GameOptimizer
             _defaultForeColor = Console.ForegroundColor;
 
             SetupInteractiveShell();
-            ConfigManager.WriteDefaultConfigIfNotExists(ConfigFile);
+
+            Config.WriteDefaultConfigIfNotExists(ConfigFile);
+            _config = Config.Read(ConfigFile) ?? Config.Default;
 
             var processTypeIdentifier = new ExplicitProcessTypeIdentifier(gameProcessIdentifierFallback: new UsageBasedGameProcessIdentifier(), outputDisplayer);
 
-            Optimizer = new Optimizer(processTypeIdentifier, processTypeIdentifier, new ActiveProcessProvider(), ConfigManager.Read(ConfigFile), outputDisplayer);
+            Optimizer = new Optimizer(processTypeIdentifier, processTypeIdentifier, new ActiveProcessProvider(), _config, outputDisplayer);
 
             // Begin Main Menu application loop
             IConsoleMenu mainMenu = new MainMenu();

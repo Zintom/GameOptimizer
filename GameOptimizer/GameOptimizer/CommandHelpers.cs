@@ -11,9 +11,9 @@ namespace Zintom.GameOptimizer
         public static void Command_OptimizeWithFlags(OptimizeConditions flags)
         {
             _gui.DrawTitle(AppName, null, true);
-            _gui.DrawSubtitleText(string.Format("Optimizing in {0} seconds...", _optimizeWaitTimeMillis / 1000));
+            _gui.DrawSubtitleText(string.Format("Optimizing in {0} seconds...", _config.OptimizeDelayTimeMillis / 1000));
 
-            Thread.Sleep(_optimizeWaitTimeMillis);
+            Thread.Sleep(_config.OptimizeDelayTimeMillis);
 
             _gui.DrawContentText($"Optimizing (Flags: {flags})...");
 

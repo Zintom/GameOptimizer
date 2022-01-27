@@ -19,7 +19,7 @@ namespace Zintom.GameOptimizer
 
         private static readonly IOutputProvider outputDisplayer = new CLIOutputDisplayer();
         public static Optimizer Optimizer { get; private set; } = default!;
-        private static Config _config;
+        private static Config _config = default!;
 
         private static InteractiveShell.InteractiveShell _gui = default!;
 

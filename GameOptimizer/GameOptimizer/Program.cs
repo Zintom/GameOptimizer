@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Zintom.GameOptimizer.ProcessIdentifiers;
 using Zintom.GameOptimizer.Menus;
 using Zintom.InteractiveShell;
+using Zintom.GameOptimizer.Optimization;
 
 namespace Zintom.GameOptimizer
 {
@@ -41,7 +42,7 @@ namespace Zintom.GameOptimizer
 
             var processTypeIdentifier = new ExplicitProcessTypeIdentifier(gameProcessIdentifierFallback: new UsageBasedGameProcessIdentifier(), outputDisplayer);
 
-            Optimizer = new Optimizer(processTypeIdentifier, processTypeIdentifier, ConfigManager.Read(ConfigFile), outputDisplayer);
+            Optimizer = new Optimizer(processTypeIdentifier, processTypeIdentifier, new ActiveProcessProvider(), ConfigManager.Read(ConfigFile), outputDisplayer);
 
             // Begin Main Menu application loop
             IConsoleMenu mainMenu = new MainMenu();

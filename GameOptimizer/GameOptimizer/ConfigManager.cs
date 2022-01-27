@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text.Json;
 
 namespace Zintom.GameOptimizer
@@ -21,10 +22,10 @@ namespace Zintom.GameOptimizer
 
         #endregion
 
-        private Config()
+        public Config()
         {
             StreamerSpecificExecutables = new string[] { "obs64", "ffmpeg-mux64", "obs-ffmpeg-mux" };
-            LimitStreamerSpecificExecutablesAffinity = null;
+            LimitStreamerSpecificExecutablesAffinity = Array.Empty<int>();
             OptimizeDelayTimeMillis = 1000;
         }
 

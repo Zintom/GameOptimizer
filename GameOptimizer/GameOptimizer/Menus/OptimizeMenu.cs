@@ -2,7 +2,7 @@
 
 namespace Zintom.GameOptimizer.Menus
 {
-    public class OptimizeMenu : IConsoleMenu
+    internal class OptimizeMenu : IConsoleMenu
     {
 
         private readonly ISettingsProvider _settingsProvider;

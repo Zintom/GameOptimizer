@@ -1,6 +1,6 @@
 ﻿namespace Zintom.GameOptimizer.Menus
 {
-    public class TOTDMenu : IConsoleMenu
+    internal class TOTDMenu : IConsoleMenu
     {
         private readonly string[] tips = new string[] {
             "Make sure to add your games/apps to the whitelist file\nor they will be negatively affected by the optimizer!", 
@@ -12,9 +12,9 @@
             "Cannot be run in DOS mode!"
             };
 
-        readonly ISettingsProvider _settings;
+        private readonly ISettingsProvider _settings;
 
-        public TOTDMenu(ISettingsProvider settingsProvider)
+        internal TOTDMenu(ISettingsProvider settingsProvider)
         {
             _settings = settingsProvider;
         }

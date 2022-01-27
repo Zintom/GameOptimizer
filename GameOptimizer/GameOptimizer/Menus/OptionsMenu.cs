@@ -5,10 +5,10 @@ using Zintom.StorageFacility;
 
 namespace Zintom.GameOptimizer.Menus
 {
-    public class OptionsMenu : IConsoleMenu, ISettingsProvider
+    internal class OptionsMenu : IConsoleMenu, ISettingsProvider
     {
         private const string SettingsFile = "opt_settings";
-        public readonly Storage _settings;
+        private readonly Storage _settings;
 
         public bool DisplayErrors
         {
@@ -34,7 +34,7 @@ namespace Zintom.GameOptimizer.Menus
             set => _settings.Edit().PutValue(nameof(TipNumber), value).Commit();
         }
 
-        public OptionsMenu()
+        internal OptionsMenu()
         {
             Console.WriteLine("Loading settings information..");
             _settings = Storage.GetStorage(SettingsFile);
@@ -105,7 +105,7 @@ namespace Zintom.GameOptimizer.Menus
         }
     }
 
-    public interface ISettingsProvider
+    internal interface ISettingsProvider
     {
         /// <summary>
         /// Program should print errors if they are encountered.

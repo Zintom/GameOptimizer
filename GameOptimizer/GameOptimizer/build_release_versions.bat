@@ -2,9 +2,14 @@
 
 echo Building Windows 64-Bit release..
 echo.
-dotnet publish -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true -r win-x64
+dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained
 echo Done.
 echo.
+
+pause
+timeout /t -1000
+
+exit
 
 echo Building Windows 32-Bit release..
 echo.

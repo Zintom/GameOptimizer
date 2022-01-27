@@ -145,28 +145,12 @@ namespace Zintom.GameOptimizer.ProcessIdentifiers
 
         public bool IsGame(IProcess process)
         {
-            for (int i = 0; i < _gameProcessNames.Count; i++)
-            {
-                if (process.ProcessName == _gameProcessNames[i])
-                {
-                    return true;
-                }
-            }
-
-            return _gameProcessIdentifierFallback?.IsGame(process) ?? false;
+            return _gameProcessNames.Contains(process.ProcessName) || (_gameProcessIdentifierFallback?.IsGame(process) ?? false);
         }
 
         public bool IsWhitelisted(IProcess process)
         {
-            for (int i = 0; i < _whiteListedProcessNames.Count; i++)
-            {
-                if (process.ProcessName == _whiteListedProcessNames[i])
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return _whiteListedProcessNames.Contains(process.ProcessName);
         }
 
         public void Refresh()

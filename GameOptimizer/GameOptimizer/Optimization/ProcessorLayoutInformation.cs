@@ -32,6 +32,7 @@ namespace Zintom.GameOptimizer.Optimization
             // Add more processors here
             _processorNameToLayout.Add("AMD Ryzen 5 1600 Six-Core Processor", new ProcessorLayout(6, 3));
             _processorNameToLayout.Add("AMD Ryzen 7 1700 Eight-Core Processor", new ProcessorLayout(8, 4));
+            _processorNameToLayout.Add("AMD Ryzen 5 3600X 6-Core Processor", new ProcessorLayout(6, 3));
         }
 
         /// <summary>

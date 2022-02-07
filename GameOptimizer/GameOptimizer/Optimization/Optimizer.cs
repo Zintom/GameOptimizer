@@ -47,6 +47,22 @@ namespace Zintom.GameOptimizer
     }
 
     /// <summary>
+    /// Indicates to the optimizer whether the user wishes to optimize for SPEED or LATENCY.
+    /// </summary>
+    internal enum PerformancePreference
+    {
+        Speed,
+        /// <summary>
+        /// Ryzen Processors Only
+        /// </summary>
+        /// <remarks>
+        /// Processors based on the Zen architecture incur a performance hit when work is distributed across CCX boundaries, optimizing for Latency in this case suggests the optimizer
+        /// keep game processes on one CCX.
+        /// </remarks>
+        Latency
+    }
+
+    /// <summary>
     /// Maps <see cref="Process.ProcessorAffinity"/> to enum values.
     /// </summary>
     [Flags]
@@ -212,6 +228,8 @@ namespace Zintom.GameOptimizer
             }
         }
 
+        #region Private Members
+
         private readonly IOutputProvider? _outputProvider;
 
         private const string RestoreStateFile = "opt_restore_state";
@@ -221,16 +239,6 @@ namespace Zintom.GameOptimizer
 
         private readonly nint _affinityAllCores = BitMask.SetBitRange(0, 0, Environment.ProcessorCount);
 
-        /// <summary>
-        /// As specified by <c>GetOptimimumAffinityMask(true)</c>.
-        /// </summary>
-        private readonly nint _affinityPriorityCores = GetOptimimumAffinityMask(true);
-
-        /// <summary>
-        /// As specified by <c>GetOptimimumAffinityMask(false)</c>.
-        /// </summary>
-        private readonly nint _affinityNonPriorityCores = GetOptimimumAffinityMask(false);
-
         private readonly Config? _config;
 
         private readonly object _optimizeLockObject = new();
@@ -239,14 +247,23 @@ namespace Zintom.GameOptimizer
         private readonly IWhitelistedProcessIdentifierSource _whitelistedProcessIdentifier;
         private readonly IGameProcessIdentifierSource _gameProcessIdentifier;
 
+        #endregion
+
+        #region Public Members
+
         /// <summary>
         /// <see langword="true"/> if optimization has been run. Returns to <see langword="false"/> when <see cref="Restore"/> is ran.
         /// </summary>
         internal bool IsOptimized { get; private set; }
+
         /// <summary>
         /// Whether the optimizer should display errors when it encounters them.
         /// </summary>
         internal bool ShowErrorCodes { get; set; }
+
+        internal PerformancePreference PerformancePreference { get; set; } = PerformancePreference.Latency;
+
+        #endregion
 
         /// <param name="outputProvider">If not <b>null</b>, the optimizer will use this to output messages/problems or errors.</param>
         /// <param name="holdState">Should the optimizer store its state on disk so that it may be restored at a later date?</param>
@@ -393,12 +410,12 @@ namespace Zintom.GameOptimizer
                     if (isGame)
                     {
                         // If this is a game process then put it on the priority cores
-                        newAffinity = _affinityPriorityCores;
+                        newAffinity = GetOptimimumAffinityMask(returnPriorityCores: true);
                     }
                     else
                     {
                         // Because this is not a game, put the process on the non-priority cores.
-                        newAffinity = _affinityNonPriorityCores;
+                        newAffinity = GetOptimimumAffinityMask(returnPriorityCores: false);
                     }
 
                     // Change the affinity, if successful increment the optimizationsRan by one.
@@ -577,20 +594,23 @@ namespace Zintom.GameOptimizer
         /// </summary>
         /// <param name="returnPriorityCores">Determines whether we should be giving you a mask for the priority cores, or for the non-priority cores.</param>
         /// <returns></returns>
-        private static nint GetOptimimumAffinityMask(bool returnPriorityCores = true)
+        private nint GetOptimimumAffinityMask(bool returnPriorityCores = true)
         {
             var procLayout = ProcessorLayoutInformation.GetCurrentProcessorLayout();
 
             nint affinity = returnPriorityCores ? 0
                                                 : (nint)Convert.ToInt64("".PadRight(procLayout.PhysicalCores, '1'), 2);
 
-            // If this processor doesn't have core complexes or has only one complex
-            // we use a best guess on what cores a game process should be put on.
+            // If this processor doesn't have core complexes OR has only one core complex OR the performance preference is set to "Speed".
+            // We use a best guess on what cores a game process should be put on,
             // e.g: For 4 cpus, put games on the first 3 cores. For 6 cpus, put games on the first 4 cores.
             if (!procLayout.HasCoreComplexes ||
-                 procLayout.NumberOfCoreComplexes == 1)
+                 procLayout.NumberOfCoreComplexes == 1 ||
+                 PerformancePreference == PerformancePreference.Speed)
             {
-                // This CPU doesn't have core complexes
+                // This branch optimizes by giving the most processing power to the game,
+                // at the potential sacrifice of latency on Zen based processors (due to CCX interconnect latency)
+
                 return procLayout.PhysicalCores switch
                 {
                     2 => BitMask.ModifyBitRange(affinity, 0, 1, returnPriorityCores),
@@ -607,11 +627,12 @@ namespace Zintom.GameOptimizer
             }
             else
             {
-                // The logic behind this is that we put games on all but the last core complex.
-                // e.g: For 2 core complexes, we put games on the first core complex,
-                //      for 4 complexes, we put games on the first 3 core complexes.
+                // This branch optimizes for latency, we isolate the game onto one CCX, this means
+                // there is no interconnect latency penalty on Zen processors.
+                // This may impact overall performance as depending on the CPU, there may be cores left idling because they sit outside of the first CCX
+                // and the game can't touch them.
 
-                return BitMask.ModifyBitRange(affinity, 0, procLayout.CoresPerCoreComplex * (procLayout.NumberOfCoreComplexes - 1), returnPriorityCores);
+                return BitMask.ModifyBitRange(affinity, 0, procLayout.CoresPerCoreComplex, returnPriorityCores);
             }
         }
 

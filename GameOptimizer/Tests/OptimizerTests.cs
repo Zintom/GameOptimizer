@@ -33,9 +33,11 @@ public class OptimizerTests
         Optimizer optimizer = new Optimizer(mockSystem, mockSystem, mockSystem, null, null, false);
         optimizer.Optimize(OptimizeConditions.OptimizeAffinity);
 
+        // Ensure the non-priority and non-game whitelisted processes all have the same affinity.
         Assert.IsTrue(notSpecialFirst.ProcessorAffinity == notSpecialSecond.ProcessorAffinity);
         Assert.IsTrue(notSpecialFirst.ProcessorAffinity == whitelistedProcess1.ProcessorAffinity);
 
+        // Ensure the game process has the opposite affinity to the non-priority and non-game processes.
         string notSpecialFirstAff = Convert.ToString((nint)notSpecialFirst.ProcessorAffinity, 2).PadLeft(64, '0');
         string gameAff = Convert.ToString((nint)gameProcess1.ProcessorAffinity, 2).PadLeft(64, '0');
 
